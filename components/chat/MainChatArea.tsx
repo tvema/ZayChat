@@ -15,6 +15,8 @@ import ReminderModal from '@/components/chat/ReminderModal';
 import RemindersListModal from '@/components/chat/RemindersListModal';
 import { PinnedMessagesBar } from '@/components/chat/PinnedMessagesBar';
 
+import { BUNNY_PATTERN } from '@/lib/patterns';
+
 interface MainChatAreaProps {
   user: User;
   activeContact: User | null;
@@ -220,7 +222,8 @@ export function MainChatArea({
 
   return (
     <main 
-      className={`flex-1 min-w-0 min-h-0 flex flex-col ${chatTheme.background} relative ${(!activeContact && !activeGroup) ? 'hidden md:flex' : 'flex'}`}
+      className={`flex-1 min-w-0 min-h-0 flex flex-col bg-indigo-50/50 dark:bg-indigo-950/20 relative ${(!activeContact && !activeGroup) ? 'hidden md:flex' : 'flex'}`}
+      style={{ backgroundImage: `url("${BUNNY_PATTERN}")`, backgroundSize: '300px' }}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
