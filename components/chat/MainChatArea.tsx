@@ -223,7 +223,7 @@ export function MainChatArea({
   return (
     <main 
       className={`flex-1 min-w-0 min-h-0 flex flex-col bg-indigo-50/50 dark:bg-indigo-950/20 relative ${(!activeContact && !activeGroup) ? 'hidden md:flex' : 'flex'}`}
-      style={{ backgroundImage: `url("${BUNNY_PATTERN}")`, backgroundSize: '300px' }}
+      style={{ backgroundImage: `url("${BUNNY_PATTERN}")`, backgroundSize: '400px' }}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
