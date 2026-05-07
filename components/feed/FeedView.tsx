@@ -456,7 +456,7 @@ export function FeedView({
   return (
     <div 
       className="flex-1 h-full bg-indigo-50/50 dark:bg-indigo-950/20 overflow-y-auto relative"
-      style={{ backgroundImage: `url("/bunnies.jpg")`, backgroundSize: '400px' }}
+      style={{ backgroundImage: `url("${BUNNY_PATTERN}")`, backgroundSize: '400px' }}
     >
       <AnimatePresence>
         {selectedFeedUserId && selectedFeedUserId !== user?.id && (
