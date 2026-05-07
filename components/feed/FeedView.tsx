@@ -452,8 +452,13 @@ export function FeedView({
     }
   };
 
+  const BUNNY_PATTERN = `data:image/svg+xml,%3Csvg width='160' height='160' viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23a78bfa' stroke-opacity='0.4' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3C!-- Bunny 1 --%3E%3Cpath d='M40 60c-8 0-14-5.5-14-13.5S32 33 40 33s14 5.5 14 13.5S48 60 40 60z M28 35c-3-11-5-24 4-27 5-1 8 7 5 16l-1 11 M52 35c3-11 5-24-4-27-5-1-8 7-5 16l1 11'/%3E%3Ccircle cx='34' cy='50' r='2' fill='%23a78bfa' fill-opacity='0.5' stroke='none'/%3E%3Ccircle cx='46' cy='50' r='2' fill='%23a78bfa' fill-opacity='0.5' stroke='none'/%3E%3Cpath d='M40 53v3' stroke='%23f472b6' stroke-opacity='0.6'/%3E%3C!-- Carrot --%3E%3Cpath d='M105 110l15-28c3-5 9-7 12-4 3 3 1 8-4 12l-28 15c-4 2-8 1-9-2s-1-5 4-8z' fill='%23fb923c' fill-opacity='0.15' stroke='%23fb923c' stroke-opacity='0.4'/%3E%3Cpath d='M118 78 c2-6 7-8 11-5M122 83 c4-4 9-5 13-3' stroke='%234ade80' stroke-opacity='0.4'/%3E%3C!-- Bunny 2 --%3E%3Cpath d='M120 140c-8 0-14-5.5-14-13.5S112 113 120 113s14 5.5 14 13.5S128 140 120 140z M108 115c-3-11-5-24 4-27 5-1 8 7 5 16l-1 11 M132 115c3-11 5-24-4-27-5-1-8 7-5 16l1 11'/%3E%3Ccircle cx='114' cy='130' r='2' fill='%23a78bfa' fill-opacity='0.5' stroke='none'/%3E%3Ccircle cx='126' cy='130' r='2' fill='%23a78bfa' fill-opacity='0.5' stroke='none'/%3E%3Cpath d='M120 133v3' stroke='%23f472b6' stroke-opacity='0.6'/%3E%3C!-- Stars & Dots --%3E%3Cpath d='M15 120 l5-5 5 5 M20 115 l0 10' stroke='%23fbbf24' stroke-opacity='0.4' stroke-width='3'/%3E%3Cpath d='M130 30 l5-5 5 5 M135 25 l0 10' stroke='%23fbbf24' stroke-opacity='0.4' stroke-width='3'/%3E%3Ccircle cx='80' cy='80' r='3' fill='%23f472b6' fill-opacity='0.3' stroke='none'/%3E%3Ccircle cx='20' cy='20' r='2' fill='%2360a5fa' fill-opacity='0.3' stroke='none'/%3E%3Ccircle cx='140' cy='150' r='2' fill='%2360a5fa' fill-opacity='0.3' stroke='none'/%3E%3C/g%3E%3C/svg%3E`;
+
   return (
-    <div className="flex-1 h-full bg-neutral-50 dark:bg-neutral-900 overflow-y-auto relative">
+    <div 
+      className="flex-1 h-full bg-indigo-50/50 dark:bg-indigo-950/20 overflow-y-auto relative"
+      style={{ backgroundImage: `url("${BUNNY_PATTERN}")`, backgroundSize: '160px' }}
+    >
       <AnimatePresence>
         {selectedFeedUserId && selectedFeedUserId !== user?.id && (
           <StoryViewer
