@@ -1,0 +1,9 @@
+{
+  "name": "Remix: ZState Chat",
+  "description": "Secure, end-to-end encrypted private messenger with video calls, contact circles, and PWA integration.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "display-capture"
+  ]
+}
