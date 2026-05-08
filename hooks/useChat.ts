@@ -544,6 +544,14 @@ export function useChat() {
   const appViewRef = useRef(appView);
   useEffect(() => { appViewRef.current = appView; }, [appView]);
 
+  useEffect(() => {
+    const handleContactsUpdated = () => {
+      fetchContacts();
+    };
+    window.addEventListener('contacts-updated', handleContactsUpdated);
+    return () => window.removeEventListener('contacts-updated', handleContactsUpdated);
+  }, [fetchContacts]);
+
   useSocketEvents({
     socket,
     t,

@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { motion } from 'motion/react';
-import { Camera, ArrowRight, UserPlus, CheckCircle2, Languages } from 'lucide-react';
+import { Camera, ArrowRight, UserPlus, CheckCircle2, Languages, Sun, Moon } from 'lucide-react';
 import AvatarCropper from '@/components/AvatarCropper';
 import { useTheme } from 'next-themes';
 import { useLanguage } from '@/components/LanguageProvider';
@@ -18,6 +18,12 @@ export default function Register() {
   const [checkingInvite, setCheckingInvite] = useState(false);
   const [error, setError] = useState('');
   const { language, setLanguage, t } = useLanguage();
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -46,7 +52,6 @@ export default function Register() {
 
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { setTheme } = useTheme();
 
   useEffect(() => {
     const token = safeLocalStorage.getItem('token');
@@ -58,9 +63,8 @@ export default function Register() {
       const pk = safeLocalStorage.getItem('e2e_private_key');
       safeLocalStorage.clear();
       if (pk) safeLocalStorage.setItem('e2e_private_key', pk);
-      setTheme('system');
     }
-  }, [router, setTheme]);
+  }, [router]);
 
   const handleCheckInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,24 +170,44 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-[100dvh] flex items-center justify-center bg-neutral-50 dark:bg-gray-900 p-4 font-sans py-12">
+    <div 
+      className="min-h-[100dvh] flex items-center justify-center p-4 font-sans py-12 relative bg-cover bg-center transition-all duration-700"
+      style={{
+        backgroundImage: mounted ? `url('${resolvedTheme === 'dark' 
+          ? 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1920&auto=format&fit=crop' 
+          : 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop'}')` 
+          : 'none',
+        backgroundColor: mounted ? undefined : 'var(--fallback-bg, #f8fafc)',
+      }}
+    >
+      <div className="absolute inset-0 bg-white/40 dark:bg-black/60 backdrop-blur-md"></div>
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden"
+        className="max-w-md w-full bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl rounded-3xl shadow-xl overflow-hidden border border-white/20 dark:border-neutral-800/50 relative z-10"
       >
         <div className="p-8">
           <div className="flex justify-between items-start mb-6">
-            <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center shadow-inner">
               <UserPlus size={24} />
             </div>
-            <button
-              onClick={() => setLanguage(language === 'en' ? 'ru' : 'en')}
-              className="flex items-center gap-2 px-3 py-1.5 bg-neutral-100 dark:bg-neutral-800 rounded-lg text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
-            >
-              <Languages size={14} />
-              {language === 'en' ? 'Русский' : 'English'}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setLanguage(language === 'en' ? 'ru' : 'en')}
+                className="flex items-center gap-2 px-3 py-1.5 bg-neutral-100/80 dark:bg-neutral-800/80 rounded-lg text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors backdrop-blur-sm"
+                title="Change language"
+              >
+                <Languages size={14} />
+                {language === 'en' ? 'RU' : 'EN'}
+              </button>
+              <button
+                onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+                className="flex items-center justify-center w-8 h-8 bg-neutral-100/80 dark:bg-neutral-800/80 rounded-lg text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors backdrop-blur-sm"
+                title="Toggle theme"
+              >
+                {mounted && resolvedTheme === 'dark' ? <Moon size={14} /> : <Sun size={14} />}
+              </button>
+            </div>
           </div>
           <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">{t.auth.joinClub}</h1>
           <p className="text-neutral-500 dark:text-gray-400 mb-8">

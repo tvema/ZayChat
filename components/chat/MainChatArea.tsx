@@ -11,12 +11,15 @@ import type { Socket } from 'socket.io-client';
 import type { EmojiClickData } from 'emoji-picker-react';
 import { UploadCloud, Search, X, Activity } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageProvider';
+import { useTheme } from 'next-themes';
 import ReminderModal from '@/components/chat/ReminderModal';
 import RemindersListModal from '@/components/chat/RemindersListModal';
 import { PinnedMessagesBar } from '@/components/chat/PinnedMessagesBar';
+import { ShareContactsModal } from '@/components/ShareContactsModal';
 
 interface MainChatAreaProps {
   user: User;
+  contacts: User[];
   activeContact: User | null;
   activeGroup: Group | null;
   messages: Message[];
@@ -77,6 +80,7 @@ interface MainChatAreaProps {
 
 export function MainChatArea({
   user,
+  contacts,
   activeContact,
   activeGroup,
   messages,
@@ -134,11 +138,19 @@ export function MainChatArea({
   setHighlightedMessageId,
   token
 }: MainChatAreaProps) {
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [isDragging, setIsDragging] = useState(false);
   const [droppedFile, setDroppedFile] = useState<File | null>(null);
   const [showReminderModal, setShowReminderModal] = useState<string | null>(null);
   const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
   const [showRemindersList, setShowRemindersList] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const dragCounter = React.useRef(0);
   const { t } = useLanguage();
 
@@ -221,7 +233,7 @@ export function MainChatArea({
   return (
     <main 
       className={`flex-1 min-w-0 min-h-0 flex flex-col bg-indigo-50/50 dark:bg-indigo-950/20 relative ${(!activeContact && !activeGroup) ? 'hidden md:flex' : 'flex'}`}
-      style={{ backgroundImage: `url("/bunnies.jpg")`, backgroundSize: '400px' }}
+      style={{ backgroundImage: `url("${mounted && resolvedTheme === 'dark' ? '/dark_wallpaper.jpg' : '/bunnies.jpg'}")`, backgroundSize: '400px', backgroundRepeat: 'repeat' }}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -271,6 +283,7 @@ export function MainChatArea({
                 setShowAddToGroupModal(true);
               }
             }}
+            onShareContacts={() => setShowShareModal(true)}
             activeChatReminders={activeChatReminders}
             activeChatPinnedMessages={pinnedMessages}
             onShowReminders={() => setShowRemindersList(true)}
@@ -442,6 +455,27 @@ export function MainChatArea({
             }
             setShowReminderModal(null);
             setEditingReminder(null);
+          }}
+        />
+      )}
+
+      {showShareModal && (
+        <ShareContactsModal
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          contacts={contacts}
+          onShare={(selectedContacts) => {
+            const payload = {
+              type: 'contacts_share',
+              contacts: selectedContacts.map(c => ({
+                id: c.id,
+                username: c.username,
+                first_name: c.first_name,
+                last_name: c.last_name,
+                avatar_url: c.avatar_url
+              }))
+            };
+            handleSendMessage(JSON.stringify(payload));
           }}
         />
       )}

@@ -24,6 +24,7 @@ interface ChatHeaderProps {
   activeChatPinnedMessages?: PinnedMessage[];
   onShowReminders?: () => void;
   onSetReminder?: () => void;
+  onShareContacts?: () => void;
   onToggleSearch?: () => void;
 }
 
@@ -43,6 +44,7 @@ export function ChatHeader({
   activeChatPinnedMessages = [],
   onShowReminders,
   onSetReminder,
+  onShareContacts,
   onToggleSearch,
 }: ChatHeaderProps) {
   const { t } = useLanguage();
@@ -214,6 +216,7 @@ export function ChatHeader({
             onClearChat={onClearChat}
             onDelete={activeContact ? onRemoveContact : undefined}
             onSetReminder={onSetReminder}
+            onShareContacts={onShareContacts}
             trigger={
               <button 
                 className="p-2 md:p-2.5 text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full transition-colors"

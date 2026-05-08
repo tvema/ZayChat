@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Mail, ArrowRight, Languages } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
+import { Mail, ArrowRight, Languages, Sun, Moon } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageProvider';
+import { useTheme } from 'next-themes';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -11,6 +12,12 @@ export default function ForgotPassword() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const { language, setLanguage, t } = useLanguage();
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,21 +47,39 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center p-4 selection:bg-indigo-500/30">
-      <div className="absolute top-4 right-4">
+    <div 
+      className="min-h-[100dvh] flex items-center justify-center p-4 font-sans py-12 relative bg-cover bg-center transition-all duration-700"
+      style={{
+        backgroundImage: mounted ? `url('${resolvedTheme === 'dark' 
+          ? 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1920&auto=format&fit=crop' 
+          : 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop'}')` 
+          : 'none',
+        backgroundColor: mounted ? undefined : 'var(--fallback-bg, #f8fafc)',
+      }}
+    >
+      <div className="absolute inset-0 bg-white/40 dark:bg-black/60 backdrop-blur-md"></div>
+      <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
         <button
           onClick={() => setLanguage(language === 'en' ? 'ru' : 'en')}
-          className="flex items-center gap-2 px-3 py-1.5 bg-neutral-200/50 dark:bg-neutral-800/50 rounded-lg text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+          className="flex items-center gap-2 px-3 py-1.5 bg-neutral-100/80 dark:bg-neutral-800/80 rounded-lg text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors backdrop-blur-sm"
+          title="Change language"
         >
           <Languages size={14} />
           {language === 'en' ? 'RU' : 'EN'}
+        </button>
+        <button
+          onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+          className="flex items-center justify-center w-8 h-8 bg-neutral-100/80 dark:bg-neutral-800/80 rounded-lg text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors backdrop-blur-sm"
+          title="Toggle theme"
+        >
+          {mounted && resolvedTheme === 'dark' ? <Moon size={14} /> : <Sun size={14} />}
         </button>
       </div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md relative z-10"
       >
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-indigo-600 dark:bg-indigo-500 rounded-2xl mx-auto mb-6 flex items-center justify-center shadow-lg shadow-indigo-500/20">

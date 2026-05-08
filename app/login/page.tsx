@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { motion } from 'motion/react';
-import { KeyRound, User, Lock, ArrowRight, Languages } from 'lucide-react';
+import { KeyRound, User, Lock, ArrowRight, Languages, Sun, Moon } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageProvider';
 import { decryptPrivateKeyWithPassword, exportKey, generateRSAKeyPair, encryptPrivateKeyWithPassword } from '@/lib/crypto';
 
@@ -15,10 +15,12 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const { language, setLanguage, t } = useLanguage();
 
   useEffect(() => {
+    setMounted(true);
     const token = safeLocalStorage.getItem('token');
     const user = safeLocalStorage.getItem('user');
     if (token && user && user !== 'undefined') {
@@ -26,7 +28,6 @@ export default function Login() {
     } else {
       // Reset everything for a new user as requested
       safeLocalStorage.clear();
-      setTheme('system');
       
       // Check if we were redirected due to session revocation
       if (typeof window !== 'undefined' && window.location.search.includes('revoked=true')) {
@@ -34,7 +35,7 @@ export default function Login() {
         window.history.replaceState({}, document.title, window.location.pathname);
       }
     }
-  }, [router, setTheme, language]);
+  }, [router, language]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,24 +140,44 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-[100dvh] flex items-center justify-center bg-neutral-50 dark:bg-neutral-950 p-4 font-sans">
+    <div 
+      className="min-h-[100dvh] flex items-center justify-center p-4 font-sans relative bg-cover bg-center transition-all duration-700"
+      style={{
+        backgroundImage: mounted ? `url('${resolvedTheme === 'dark' 
+          ? 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1920&auto=format&fit=crop' 
+          : 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop'}')` 
+          : 'none',
+        backgroundColor: mounted ? undefined : 'var(--fallback-bg, #f8fafc)',
+      }}
+    >
+      <div className="absolute inset-0 bg-white/40 dark:bg-black/60 backdrop-blur-md"></div>
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full bg-white dark:bg-neutral-900 rounded-3xl shadow-xl overflow-hidden border border-transparent dark:border-neutral-800"
+        className="max-w-md w-full bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl rounded-3xl shadow-xl overflow-hidden border border-white/20 dark:border-neutral-800/50 relative z-10"
       >
         <div className="p-8">
           <div className="flex justify-between items-start mb-6">
-            <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center shadow-inner">
               <KeyRound size={24} />
             </div>
-            <button
-              onClick={() => setLanguage(language === 'en' ? 'ru' : 'en')}
-              className="flex items-center gap-2 px-3 py-1.5 bg-neutral-100 dark:bg-neutral-800 rounded-lg text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
-            >
-              <Languages size={14} />
-              {language === 'en' ? 'Русский' : 'English'}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setLanguage(language === 'en' ? 'ru' : 'en')}
+                className="flex items-center gap-2 px-3 py-1.5 bg-neutral-100/80 dark:bg-neutral-800/80 rounded-lg text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors backdrop-blur-sm"
+                title="Change language"
+              >
+                <Languages size={14} />
+                {language === 'en' ? 'RU' : 'EN'}
+              </button>
+              <button
+                onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+                className="flex items-center justify-center w-8 h-8 bg-neutral-100/80 dark:bg-neutral-800/80 rounded-lg text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors backdrop-blur-sm"
+                title="Toggle theme"
+              >
+                {mounted && resolvedTheme === 'dark' ? <Moon size={14} /> : <Sun size={14} />}
+              </button>
+            </div>
           </div>
           <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">{t.auth.welcome}</h1>
           <p className="text-neutral-500 dark:text-neutral-400 mb-8">{t.auth.enterDetails}</p>

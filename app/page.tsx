@@ -386,6 +386,7 @@ export default function ChatApp() {
       ) : (
       <MainChatArea
         user={user!}
+        contacts={chat.contacts}
         activeContact={activeContact}
         activeGroup={activeGroup}
         messages={chat.messages}

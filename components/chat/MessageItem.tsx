@@ -9,6 +9,7 @@ import { User, Message, Group } from '@/types/chat';
 import { isOnlyEmojis } from '@/lib/chatUtils';
 import { renderMessageText } from '@/lib/chatComponents';
 import { FileAttachment } from '@/components/FileAttachment';
+import { ContactsShareViewer } from '@/components/chat/ContactsShareViewer';
 import type { Socket } from 'socket.io-client';
 
 export interface MessageItemProps {
@@ -453,6 +454,13 @@ export function MessageItem({
                             <span style={{ width: `${spacerWidth}px` }} className="inline-flex shrink-0 h-[4px] align-bottom opacity-0" aria-hidden="true">&#8203;</span>
                           </div>
                         )}
+                      </div>
+                    ) : (parsedContent && parsedContent.type === 'contacts_share') ? (
+                      <div className="flex flex-col gap-2">
+                        <ContactsShareViewer contacts={parsedContent.contacts || []} />
+                        <div className="h-[4px]">
+                          <span style={{ width: `${spacerWidth}px` }} className="inline-flex shrink-0 h-[4px] align-bottom opacity-0" aria-hidden="true">&#8203;</span>
+                        </div>
                       </div>
                     ) : (
                       <div className={`whitespace-pre-wrap break-words min-w-0 ${largeEmoji ? 'text-5xl py-2' : 'text-[15px] leading-relaxed'}`}>

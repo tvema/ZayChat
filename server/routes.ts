@@ -676,6 +676,29 @@ export function setupRoutes(server: express.Express, io: any, connectedUsers: Ma
     }
   });
 
+  // 7.05 Bulk Add Contacts
+  server.post('/api/contacts/bulk', authenticateToken, (req: any, res) => {
+    const { contactIds } = req.body;
+    if (!Array.isArray(contactIds)) {
+      return res.status(400).json({ error: 'contactIds must be an array' });
+    }
+    try {
+      const stmt = db.prepare('INSERT OR IGNORE INTO contacts (user_id, contact_id) VALUES (?, ?)');
+      let added = 0;
+      db.transaction(() => {
+        for (const cid of contactIds) {
+          if (cid && cid !== req.user.userId) {
+            const info = stmt.run(req.user.userId, cid);
+            if (info.changes > 0) added++;
+          }
+        }
+      })();
+      res.json({ success: true, added });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   // 7.1 Remove Contact
   server.delete('/api/contacts/:contactId', authenticateToken, (req: any, res) => {
     const { contactId } = req.params;

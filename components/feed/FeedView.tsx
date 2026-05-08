@@ -9,6 +9,7 @@ import { ImageViewer } from '../ImageViewer';
 import { Portal } from '../Portal';
 import { createPortal } from 'react-dom';
 import { AnimatePresence } from 'motion/react';
+import { useTheme } from 'next-themes';
 import { StoryViewer } from './StoryViewer';
 
 interface FeedPost {
@@ -64,6 +65,13 @@ export function FeedView({
   setSelectedFeedUserId: (id: string | null) => void
 }) {
   const { t } = useLanguage();
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [newPostContent, setNewPostContent] = useState('');
   const [newPostMedia, setNewPostMedia] = useState<File | null>(null);
   const [newPostDuration, setNewPostDuration] = useState(24);
@@ -455,7 +463,7 @@ export function FeedView({
   return (
     <div 
       className="flex-1 h-full bg-indigo-50/50 dark:bg-indigo-950/20 overflow-y-auto relative"
-      style={{ backgroundImage: `url("/bunnies.jpg")`, backgroundSize: '400px' }}
+      style={{ backgroundImage: `url("${mounted && resolvedTheme === 'dark' ? '/dark_wallpaper.jpg' : '/bunnies.jpg'}")`, backgroundSize: '400px', backgroundRepeat: 'repeat' }}
     >
       <AnimatePresence>
         {selectedFeedUserId && selectedFeedUserId !== user?.id && (

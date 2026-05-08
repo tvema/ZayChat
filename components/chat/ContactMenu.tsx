@@ -10,7 +10,8 @@ import {
   Eraser, 
   UserMinus,
   X,
-  Bell
+  Bell,
+  Share2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useLanguage } from '../LanguageProvider';
@@ -22,6 +23,7 @@ interface ContactMenuProps {
   onClearChat?: () => void;
   onDelete?: () => void;
   onSetReminder?: () => void;
+  onShareContacts?: () => void;
   align?: 'start' | 'end';
   className?: string;
   trigger?: React.ReactNode;
@@ -34,6 +36,7 @@ export function ContactMenu({
   onClearChat,
   onDelete,
   onSetReminder,
+  onShareContacts,
   align = 'end',
   className = '',
   trigger
@@ -94,6 +97,7 @@ export function ContactMenu({
   const menuItems = [
     { icon: Info, label: t.chat.contactInfo, onClick: onInfo, color: 'text-neutral-600 dark:text-neutral-400' },
     { icon: Bell, label: t('modals.setReminder') || 'Set Reminder', onClick: onSetReminder, color: 'text-indigo-600 dark:text-indigo-400' },
+    { icon: Share2, label: 'Поделиться контактами', onClick: onShareContacts, color: 'text-blue-600 dark:text-blue-400' },
     { icon: Move, label: t.chat.moveToCircle, onClick: onMove, color: 'text-neutral-600 dark:text-neutral-400' },
     { icon: UserPlus, label: t.chat.addToGroup, onClick: onAddGroup, color: 'text-neutral-600 dark:text-neutral-400' },
     { icon: Eraser, label: t.chat.clearChat, onClick: onClearChat, color: 'text-amber-600 dark:text-amber-400' },
