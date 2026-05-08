@@ -3,9 +3,10 @@ import { safeLocalStorage } from '@/lib/safeStorage';
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, User as UserIcon, Mail, Phone, Lock, Save, Loader2, Bell } from 'lucide-react';
+import { X, User as UserIcon, Mail, Phone, Lock, Save, Loader2, Bell, Sun, Moon, Languages, Image as ImageIcon } from 'lucide-react';
 import { User } from '@/types/chat';
 import { useLanguage } from '@/components/LanguageProvider';
+import { useTheme } from 'next-themes';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { clearAllFiles } from '@/lib/db';
 
@@ -15,10 +16,13 @@ interface ProfileModalProps {
   user: User | null;
   onUpdateProfile: (data: { firstName: string; lastName: string; email: string; phone: string }) => Promise<void>;
   onChangePassword: (data: { oldPassword: string; newPassword: string }) => Promise<void>;
+  onAvatarClick?: () => void;
 }
 
-export const ProfileModal = ({ isOpen, onClose, user, onUpdateProfile, onChangePassword }: ProfileModalProps) => {
-  const { t } = useLanguage();
+export const ProfileModal = ({ isOpen, onClose, user, onUpdateProfile, onChangePassword, onAvatarClick }: ProfileModalProps) => {
+  const { language, setLanguage, t } = useLanguage();
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'sessions'>('profile');
   
   // Profile state
@@ -60,6 +64,10 @@ export const ProfileModal = ({ isOpen, onClose, user, onUpdateProfile, onChangeP
       fetchSessions();
     }
   }, [activeTab, isOpen]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const fetchSessions = async () => {
     setIsLoadingSessions(true);
@@ -224,6 +232,34 @@ export const ProfileModal = ({ isOpen, onClose, user, onUpdateProfile, onChangeP
                       {profileMessage.text}
                     </div>
                   )}
+
+                  <div className="flex flex-col items-center justify-center space-y-3 pb-3">
+                    <div className="relative group cursor-pointer" onClick={onAvatarClick}>
+                      <div className="w-20 h-20 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold overflow-hidden border-2 border-white dark:border-neutral-800 shadow-xl overflow-hidden hover:opacity-80 transition-opacity">
+                        {user.avatar_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img 
+                            src={user.avatar_url} 
+                            alt="Avatar" 
+                            className="w-full h-full object-cover" 
+                          />
+                        ) : (
+                          <span className="text-3xl">{user.first_name?.[0] || '?'}</span>
+                        )}
+                        <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <ImageIcon className="w-6 h-6 text-white mb-1" />
+                        </div>
+                      </div>
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={onAvatarClick}
+                      className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 font-medium"
+                    >
+                      Изменить аватар
+                    </button>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">{t.auth.firstName}</label>
@@ -302,6 +338,48 @@ export const ProfileModal = ({ isOpen, onClose, user, onUpdateProfile, onChangeP
                     {isUpdatingProfile ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
                     {t.common.save}
                   </button>
+
+                  <div className="pt-6 mt-6 border-t border-neutral-100 dark:border-neutral-800 space-y-4">
+                    <h3 className="text-sm font-bold text-neutral-900 dark:text-neutral-100">Настройки</h3>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-neutral-100 dark:bg-neutral-800 rounded-lg text-neutral-600 dark:text-neutral-400">
+                          {mounted && resolvedTheme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+                        </div>
+                        <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                          {mounted && resolvedTheme === 'dark' ? t.modals.switchToLightMode : t.modals.switchToDarkMode}
+                        </span>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          if (mounted) {
+                            setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
+                          }
+                        }}
+                        className="py-1 px-3 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-lg text-sm transition-colors text-neutral-700 dark:text-neutral-300"
+                      >
+                        Переключить
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-neutral-100 dark:bg-neutral-800 rounded-lg text-neutral-600 dark:text-neutral-400">
+                          <Languages size={18} />
+                        </div>
+                        <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Язык интерфейса</span>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => setLanguage(language === 'en' ? 'ru' : 'en')}
+                        className="py-1 px-3 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-lg text-sm transition-colors text-neutral-700 dark:text-neutral-300"
+                      >
+                        {language === 'en' ? 'Русский' : 'English'}
+                      </button>
+                    </div>
+                  </div>
                 </form>
               ) : activeTab === 'security' ? (
                 <form onSubmit={handlePasswordSubmit} className="space-y-4">

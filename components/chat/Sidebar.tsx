@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { Search, UserPlus, Users, Settings, LogOut, ShieldCheck, Sun, Moon, Layers, MoreVertical, UserMinus, Move, FolderPlus, Grid, List, Languages, Bell, Activity, ArrowLeft, MessageSquare, ChevronDown, ChevronRight } from 'lucide-react';
+import { Search, UserPlus, Users, Settings, LogOut, ShieldCheck, Sun, Moon, Layers, MoreVertical, UserMinus, Move, FolderPlus, Grid, List, Languages, Bell, Activity, ArrowLeft, MessageSquare, ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import { ContactMenu } from './ContactMenu';
 import { User, Group, Reminder, Message } from '@/types/chat';
 import { useRef, useEffect, useState, useMemo } from 'react';
@@ -249,7 +249,7 @@ export function Sidebar({
       <div className="border-b border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 sticky top-0 z-10">
         {/* Row 1: Avatar and Name */}
         <div className="p-4 flex items-center gap-3">
-          <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
+          <div className="relative group cursor-pointer" onClick={() => setShowProfileModal(true)}>
             <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold overflow-hidden border-2 border-white dark:border-neutral-800 shadow-sm ring-1 ring-neutral-200 dark:ring-neutral-700">
               {user.avatar_url ? (
                 <div className="relative w-full h-full">
@@ -266,62 +266,16 @@ export function Sidebar({
                 user.first_name?.[0] || '?'
               )}
             </div>
-            <div className="absolute inset-0 bg-black/20 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-              <Settings className="w-4 h-4 text-white" />
-            </div>
           </div>
-          <input 
-            type="file" 
-            ref={avatarInputRef} 
-            className="hidden" 
-            accept="image/*" 
-            onChange={handleAvatarChange}
-          />
-          <div className="flex flex-col min-w-0">
+          <div 
+            className="flex flex-col min-w-0 flex-1 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => setShowProfileModal(true)}
+          >
             <span className="font-semibold text-neutral-800 dark:text-neutral-100 leading-tight truncate">{user.first_name} {user.last_name}</span>
             <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
               {t.chat.online}
             </span>
-          </div>
-        </div>
-
-        {/* Row 2: Action Buttons */}
-        <div className="px-2 pb-2 flex items-center justify-between">
-          <div className="flex items-center gap-0.5">
-            <button 
-              onClick={() => setShowProfileModal(true)}
-              className="p-2 text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full transition-colors"
-              title={t.common.settings}
-            >
-              <Settings className="w-5 h-5" />
-            </button>
-            <button 
-              onClick={() => setShowGroupModal(true)}
-              className="p-2 text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full transition-colors"
-              title={t.chat.createGroup}
-            >
-              <Users className="w-5 h-5" />
-            </button>
-            {mounted && (
-              <button 
-                onClick={() => {
-                  const newTheme = resolvedTheme === 'dark' ? 'light' : 'dark';
-                  setTheme(newTheme);
-                }}
-                className="p-2 text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full transition-colors"
-                title={resolvedTheme === 'dark' ? t.modals.switchToLightMode : t.modals.switchToDarkMode}
-              >
-                {resolvedTheme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </button>
-            )}
-            <button 
-              onClick={() => setLanguage(language === 'en' ? 'ru' : 'en')}
-              className="p-2 text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full transition-colors"
-              title={language === 'en' ? 'Русский' : 'English'}
-            >
-              <Languages size={20} />
-            </button>
           </div>
           <button 
             onClick={(e) => {
@@ -554,6 +508,13 @@ export function Sidebar({
               <div className="mb-4">
                 <div className="px-3 py-2 flex items-center justify-between">
                   <h3 className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">{t.chat.groups}</h3>
+                  <button 
+                    onClick={() => setShowGroupModal(true)}
+                    className="p-1 text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded transition-colors"
+                    title={t.chat.createGroup}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
                 </div>
                 {sortedGroups.length === 0 && (
                   <div className="px-3 py-4 text-center text-xs text-neutral-500 dark:text-neutral-400">

@@ -59,6 +59,12 @@ app.prepare().then(() => {
   // Setup Socket.io
   setupSocket(io, connectedUsers);
 
+  // API Global Error Handler to always send JSON instead of HTML
+  server.use('/api', (err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error('Express API Error:', err);
+    res.status(500).json({ error: `Внутренняя ошибка сервера: ${err.message}` });
+  });
+
   console.log('Setting up Next.js catch-all route...');
   // Next.js request handling
   server.all(/.*/, (req, res) => {

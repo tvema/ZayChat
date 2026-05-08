@@ -342,7 +342,7 @@ export default function ChatApp() {
           chat.setActiveContact(null);
           chat.setReplyingTo(null);
         }}
-        handleAvatarClick={chat.handleAvatarClick}
+        handleAvatarClick={() => chat.handleAvatarClick('user', user!.id)}
         handleAvatarChange={chat.handleAvatarChange}
         setShowGroupModal={chat.setShowGroupModal}
         setShowProfileModal={chat.setShowProfileModal}
@@ -468,6 +468,14 @@ export default function ChatApp() {
         acceptCall={webrtc.acceptCall}
         reportMediaActive={webrtc.reportMediaActive}
         reportMediaStatus={webrtc.reportMediaStatus}
+      />
+
+      <input 
+        type="file" 
+        ref={chat.avatarInputRef} 
+        className="hidden" 
+        accept="image/*" 
+        onChange={chat.handleAvatarChange}
       />
 
       <ChatModals

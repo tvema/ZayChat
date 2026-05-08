@@ -53,19 +53,24 @@ export function GroupModal({ isOpen, onClose, token, user, onGroupCreated }: Gro
       }
 
       // Generate group key and encrypt it for the creator
-      if (user && user.public_key) {
-        const groupKey = await window.crypto.subtle.generateKey(
-          { name: 'AES-GCM', length: 256 },
-          true,
-          ['encrypt', 'decrypt']
-        );
-        const creatorPublicKey = await importKey(user.public_key as string, 'public');
-        const encryptedKey = await encryptAESKeyWithRSA(groupKey, creatorPublicKey);
-        
-        const encryptedKeys = {
-          "1": encryptedKey
-        };
-        formData.append('encrypted_keys', JSON.stringify(encryptedKeys));
+      if (user && user.public_key && window.crypto && window.crypto.subtle) {
+        try {
+          const groupKey = await window.crypto.subtle.generateKey(
+            { name: 'AES-GCM', length: 256 },
+            true,
+            ['encrypt', 'decrypt']
+          );
+          const creatorPublicKey = await importKey(user.public_key as string, 'public');
+          const encryptedKey = await encryptAESKeyWithRSA(groupKey, creatorPublicKey);
+          
+          const encryptedKeys = {
+            "1": encryptedKey
+          };
+          formData.append('encrypted_keys', JSON.stringify(encryptedKeys));
+        } catch (cryptoErr) {
+          console.error("Crypto error during group creation:", cryptoErr);
+          // Proceed without encryption if crypto fails but warn
+        }
       }
 
       const res = await fetch('/api/groups', {
@@ -86,12 +91,18 @@ export function GroupModal({ isOpen, onClose, token, user, onGroupCreated }: Gro
         setAvatar(null);
         setAvatarPreview(null);
       } else {
-        const errorData = await res.json();
-        showAlert(`${t.common.error}: ${errorData.error || t.common.error}`);
+        let errorMsg = t.common.error;
+        try {
+          const errorData = await res.json();
+          errorMsg = errorData.error || t.common.error;
+        } catch(e) {
+          errorMsg = `Server error ${res.status}`;
+        }
+        showAlert(`${t.common.error}: ${errorMsg}`);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to create group:', err);
-      showAlert(t.common.error);
+      showAlert(`Ошибка создания: ${err.message || err.toString()}`);
     } finally {
       setIsLoading(false);
     }

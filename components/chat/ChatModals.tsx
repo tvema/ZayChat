@@ -181,6 +181,7 @@ export function ChatModals({
         user={user}
         onUpdateProfile={handleUpdateProfile}
         onChangePassword={handleChangePassword}
+        onAvatarClick={() => handleAvatarClick('user', user?.id)}
       />
 
       {avatarToCrop && (
