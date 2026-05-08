@@ -18,6 +18,7 @@ import { useLanguage } from '../LanguageProvider';
 
 interface MessageListProps {
   user: User;
+  userContacts?: User[];
   messages: Message[];
   activeContact: User | null;
   activeGroup: Group | null;
@@ -50,6 +51,7 @@ import { MessageItem } from '@/components/chat/MessageItem';
 
 export function MessageList({
   user,
+  userContacts = [],
   messages,
   activeContact,
   activeGroup,
@@ -340,6 +342,7 @@ export function MessageList({
               nextMsg={nextMsg}
               repliedMsg={repliedMsg || null}
               user={user}
+              userContacts={userContacts}
               activeContact={activeContact}
               activeGroup={activeGroup}
               socket={socket}

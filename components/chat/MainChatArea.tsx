@@ -233,7 +233,7 @@ export function MainChatArea({
   return (
     <main 
       className={`flex-1 min-w-0 min-h-0 flex flex-col bg-indigo-50/50 dark:bg-indigo-950/20 relative ${(!activeContact && !activeGroup) ? 'hidden md:flex' : 'flex'}`}
-      style={{ backgroundImage: `url("${mounted && resolvedTheme === 'dark' ? '/dark_wallpaper.jpg' : '/bunnies.jpg'}")`, backgroundSize: '400px', backgroundRepeat: 'repeat' }}
+      style={{ backgroundImage: `url("${mounted && resolvedTheme === 'dark' ? '/bunny_wallpaper_dark.jpg' : '/bunny_wallpaper_light.jpg'}")`, backgroundSize: '400px', backgroundRepeat: 'repeat' }}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -371,6 +371,7 @@ export function MainChatArea({
               return textToSearch.toLowerCase().includes(inChatSearchQuery.toLowerCase());
             }) : messages}
             user={user}
+            userContacts={contacts}
             activeContact={activeContact}
             activeGroup={activeGroup}
             socket={socket}
@@ -464,6 +465,8 @@ export function MainChatArea({
           isOpen={showShareModal}
           onClose={() => setShowShareModal(false)}
           contacts={contacts}
+          targetName={activeGroup ? activeGroup.name : activeContact ? `${activeContact.first_name} ${activeContact.last_name || ''}`.trim() || activeContact.username : undefined}
+          excludedContactId={activeContact ? activeContact.id : undefined}
           onShare={(selectedContacts) => {
             const payload = {
               type: 'contacts_share',

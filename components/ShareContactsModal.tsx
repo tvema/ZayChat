@@ -10,22 +10,28 @@ interface ShareContactsModalProps {
   onClose: () => void;
   contacts: User[];
   onShare: (selectedContacts: User[]) => void;
+  targetName?: string;
+  excludedContactId?: string;
 }
 
-export function ShareContactsModal({ isOpen, onClose, contacts, onShare }: ShareContactsModalProps) {
+export function ShareContactsModal({ isOpen, onClose, contacts, onShare, targetName, excludedContactId }: ShareContactsModalProps) {
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const filteredContacts = useMemo(() => {
-    if (!searchQuery) return contacts;
+    let filtered = contacts;
+    if (excludedContactId) {
+      filtered = filtered.filter(c => c.id !== excludedContactId);
+    }
+    if (!searchQuery) return filtered;
     const query = searchQuery.toLowerCase();
-    return contacts.filter(c => 
+    return filtered.filter(c => 
       c.username?.toLowerCase().includes(query) ||
       c.first_name?.toLowerCase().includes(query) ||
       c.last_name?.toLowerCase().includes(query)
     );
-  }, [contacts, searchQuery]);
+  }, [contacts, searchQuery, excludedContactId]);
 
   const toggleContact = (id: string) => {
     setSelectedIds(prev => {
@@ -75,8 +81,8 @@ export function ShareContactsModal({ isOpen, onClose, contacts, onShare }: Share
                     <h3 className="text-lg font-bold text-neutral-900 dark:text-white leading-tight">
                       Поделиться контактами
                     </h3>
-                    <p className="text-xs text-neutral-500 font-medium">
-                      Выберите контакты для отправки
+                    <p className="text-xs text-neutral-500 font-medium break-words">
+                      {targetName ? `Отправить для: ${targetName}` : 'Выберите контакты для отправки'}
                     </p>
                   </div>
                 </div>

@@ -463,7 +463,7 @@ export function FeedView({
   return (
     <div 
       className="flex-1 h-full bg-indigo-50/50 dark:bg-indigo-950/20 overflow-y-auto relative"
-      style={{ backgroundImage: `url("${mounted && resolvedTheme === 'dark' ? '/dark_wallpaper.jpg' : '/bunnies.jpg'}")`, backgroundSize: '400px', backgroundRepeat: 'repeat' }}
+      style={{ backgroundImage: `url("${mounted && resolvedTheme === 'dark' ? '/bunny_wallpaper_dark.jpg' : '/bunny_wallpaper_light.jpg'}")`, backgroundSize: '400px', backgroundRepeat: 'repeat' }}
     >
       <AnimatePresence>
         {selectedFeedUserId && selectedFeedUserId !== user?.id && (

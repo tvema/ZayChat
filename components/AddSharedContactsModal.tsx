@@ -9,10 +9,13 @@ interface AddSharedContactsModalProps {
   isOpen: boolean;
   onClose: () => void;
   contacts: User[];
+  userContacts?: User[];
 }
 
-export function AddSharedContactsModal({ isOpen, onClose, contacts }: AddSharedContactsModalProps) {
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set(contacts.map(c => c.id)));
+export function AddSharedContactsModal({ isOpen, onClose, contacts, userContacts = [] }: AddSharedContactsModalProps) {
+  const existingContactIds = new Set(userContacts.map(c => c.id));
+  const newContacts = contacts.filter(c => !existingContactIds.has(c.id));
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set(newContacts.map(c => c.id)));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -116,17 +119,23 @@ export function AddSharedContactsModal({ isOpen, onClose, contacts }: AddSharedC
                     <div className="px-3 mb-2 flex justify-between items-center">
                       <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Всего {contacts.length}</span>
                       <button 
-                        onClick={() => setSelectedIds(selectedIds.size === contacts.length ? new Set() : new Set(contacts.map(c => c.id)))}
+                        onClick={() => setSelectedIds(selectedIds.size === newContacts.length ? new Set() : new Set(newContacts.map(c => c.id)))}
                         className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
+                        disabled={newContacts.length === 0}
                       >
-                        {selectedIds.size === contacts.length ? 'Снять выделение' : 'Выбрать всех'}
+                        {selectedIds.size === newContacts.length ? 'Снять выделение' : 'Выбрать всех'}
                       </button>
                     </div>
-                    {contacts.map(contact => (
+                    {contacts.map(contact => {
+                      const isExisting = existingContactIds.has(contact.id);
+                      return (
                       <button
                         key={contact.id}
-                        onClick={() => toggleContact(contact.id)}
-                        className="w-full flex justify-between items-center p-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 rounded-xl transition-colors text-left"
+                        onClick={() => {
+                          if (!isExisting) toggleContact(contact.id);
+                        }}
+                        disabled={isExisting}
+                        className={`w-full flex justify-between items-center p-3 rounded-xl transition-colors text-left ${isExisting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-neutral-50 dark:hover:bg-neutral-800/50'}`}
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           <div className={'w-10 h-10 rounded-full flex shrink-0 items-center justify-center text-sm font-medium ' + (contact.avatar_url ? '' : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900 dark:text-indigo-400')}
@@ -135,18 +144,18 @@ export function AddSharedContactsModal({ isOpen, onClose, contacts }: AddSharedC
                           </div>
                           <div className="min-w-0">
                             <p className="font-semibold text-neutral-900 dark:text-neutral-100 truncate">
-                              {contact.first_name} {contact.last_name || ''}
+                              {contact.first_name} {contact.last_name || ''} {isExisting && <span className="text-xs font-normal text-indigo-500 ml-1">(Уже добавлен)</span>}
                             </p>
                             <p className="text-xs text-neutral-500 truncate">
                               @{contact.username}
                             </p>
                           </div>
                         </div>
-                        <div className={`w-5 h-5 rounded flex items-center justify-center shrink-0 border ${selectedIds.has(contact.id) ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-neutral-300 dark:border-neutral-600'}`}>
-                          {selectedIds.has(contact.id) && <Check size={14} />}
+                        <div className={`w-5 h-5 rounded flex items-center justify-center shrink-0 border ${selectedIds.has(contact.id) || isExisting ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-neutral-300 dark:border-neutral-600'}`}>
+                          {(selectedIds.has(contact.id) || isExisting) && <Check size={14} />}
                         </div>
                       </button>
-                    ))}
+                    )})}
                   </div>
                 )}
               </div>

@@ -19,6 +19,7 @@ export interface MessageItemProps {
   nextMsg: Message | null;
   repliedMsg: Message | null;
   user: User;
+  userContacts?: User[];
   activeContact: User | null;
   activeGroup: Group | null;
   socket: Socket | null;
@@ -53,7 +54,7 @@ export interface MessageItemProps {
 
 export function MessageItem({
   msg, index, prevMsg, nextMsg, repliedMsg,
-  user, activeContact, activeGroup, socket, chatTheme,
+  user, userContacts = [], activeContact, activeGroup, socket, chatTheme,
   t, isFirstRenderOfChat, formatDateSeparator,
   selectedMessageId, setSelectedMessageId,
   activeDropdownId, setActiveDropdownId,
@@ -457,7 +458,7 @@ export function MessageItem({
                       </div>
                     ) : (parsedContent && parsedContent.type === 'contacts_share') ? (
                       <div className="flex flex-col gap-2">
-                        <ContactsShareViewer contacts={parsedContent.contacts || []} />
+                        <ContactsShareViewer contacts={parsedContent.contacts || []} isSender={isMine} userContacts={userContacts} />
                         <div className="h-[4px]">
                           <span style={{ width: `${spacerWidth}px` }} className="inline-flex shrink-0 h-[4px] align-bottom opacity-0" aria-hidden="true">&#8203;</span>
                         </div>

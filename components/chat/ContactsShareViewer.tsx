@@ -5,9 +5,11 @@ import { User } from '@/types/chat';
 
 interface ContactsShareViewerProps {
   contacts: Partial<User>[];
+  isSender?: boolean;
+  userContacts?: User[];
 }
 
-export function ContactsShareViewer({ contacts }: ContactsShareViewerProps) {
+export function ContactsShareViewer({ contacts, isSender = false, userContacts = [] }: ContactsShareViewerProps) {
   const [showModal, setShowModal] = useState(false);
 
   if (!contacts || contacts.length === 0) return null;
@@ -43,19 +45,22 @@ export function ContactsShareViewer({ contacts }: ContactsShareViewerProps) {
         )}
       </div>
 
-      <button
-        onClick={() => setShowModal(true)}
-        className="mt-2 w-full py-1.5 px-3 bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-      >
-        <UserPlus size={16} />
-        <span>Посмотреть и Добавить</span>
-      </button>
+      {!isSender && (
+        <button
+          onClick={() => setShowModal(true)}
+          className="mt-2 w-full py-1.5 px-3 bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+        >
+          <UserPlus size={16} />
+          <span>Посмотреть и Добавить</span>
+        </button>
+      )}
 
       {showModal && (
         <AddSharedContactsModal
           isOpen={showModal}
           onClose={() => setShowModal(false)}
           contacts={contacts as User[]}
+          userContacts={userContacts}
         />
       )}
     </div>
