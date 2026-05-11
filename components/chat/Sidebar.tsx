@@ -460,14 +460,47 @@ export function Sidebar({
           <div className="px-2 py-2 space-y-1">
             <div className="mb-4">
               <div className="px-3 py-2 flex items-center justify-between">
+                <h3 className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Моя лента</h3>
+              </div>
+              {feedUsers.find(u => u.id === user.id) && (
+                <button
+                  onClick={() => {
+                    if (setSelectedFeedUserId) setSelectedFeedUserId(user.id);
+                  }}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all relative ${selectedFeedUserId === user.id ? 'bg-indigo-50 dark:bg-indigo-900/20 shadow-sm' : 'hover:bg-neutral-50 dark:hover:bg-neutral-800/50'}`}
+                >
+                  <div className="relative shrink-0">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center overflow-hidden border-2 border-neutral-300 dark:border-neutral-600`}>
+                      {user.avatar_url ? (
+                        <div className="relative w-full h-full">
+                          <Image src={user.avatar_url} alt="" fill className="object-cover" referrerPolicy="no-referrer" unoptimized />
+                        </div>
+                      ) : (
+                        <div className="w-full h-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-600 dark:text-neutral-400 font-bold">
+                          {user.first_name?.[0] || '?'}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex-1 text-left min-w-0">
+                    <div className={`font-medium truncate ${selectedFeedUserId === user.id ? 'text-indigo-900 dark:text-indigo-100' : 'text-neutral-800 dark:text-neutral-100'}`}>
+                      {user.first_name} {user.last_name || ''}
+                    </div>
+                  </div>
+                </button>
+              )}
+            </div>
+            
+            <div className="mb-4">
+              <div className="px-3 py-2 flex items-center justify-between">
                 <h3 className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Истории</h3>
               </div>
-              {feedUsers.length === 0 ? (
+              {feedUsers.filter(u => u.id !== user.id).length === 0 ? (
                 <div className="px-3 py-4 text-center text-xs text-neutral-500 dark:text-neutral-400">
                   Нет новых историй
                 </div>
               ) : (
-                feedUsers.map(feedUser => (
+                feedUsers.filter(u => u.id !== user.id).map(feedUser => (
                   <button
                     key={feedUser.id}
                     onClick={() => {
@@ -490,7 +523,7 @@ export function Sidebar({
                     </div>
                     <div className="flex-1 text-left min-w-0">
                       <div className={`font-medium truncate ${selectedFeedUserId === feedUser.id ? 'text-indigo-900 dark:text-indigo-100' : 'text-neutral-800 dark:text-neutral-100'}`}>
-                        {feedUser.first_name} {feedUser.last_name}
+                        {feedUser.first_name} {feedUser.last_name || ''}
                       </div>
                       <div className="text-xs text-neutral-500 truncate">
                         {feedUser.has_unread ? 'Новые истории' : 'Просмотрено'}
