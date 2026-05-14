@@ -417,6 +417,7 @@ export default function ChatApp() {
         startCall={webrtc.startCall}
         handleRemoveContact={chat.handleRemoveContact}
         handleClearChat={chat.handleClearChat}
+        handleLeaveGroup={chat.handleLeaveGroup}
         setShowMoveToCircleModal={chat.setShowMoveToCircleModal}
         setMovingContact={chat.setMovingContact}
         setShowAddToGroupModal={chat.setShowAddToGroupModal}
@@ -484,6 +485,7 @@ export default function ChatApp() {
         token={token}
         contacts={contacts}
         groups={groups}
+        messages={chat.messages}
         activeContact={activeContact}
         activeGroup={activeGroup}
         showInviteModal={chat.showInviteModal}

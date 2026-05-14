@@ -49,6 +49,7 @@ interface MainChatAreaProps {
   setShowAddMemberModal: (show: boolean) => void;
   startCall: (contactId: string, audioOnly?: boolean) => void;
   handleRemoveContact: (contactId: string) => void;
+  handleLeaveGroup: (groupId: string) => void;
   handleClearChat: (contactId: string, isGroup?: boolean) => void;
   setShowMoveToCircleModal: (show: boolean) => void;
   setMovingContact: (contact: User | null) => void;
@@ -110,6 +111,7 @@ export function MainChatArea({
   setShowAddMemberModal,
   startCall,
   handleRemoveContact,
+  handleLeaveGroup,
   handleClearChat,
   setShowMoveToCircleModal,
   setMovingContact,
@@ -270,6 +272,7 @@ export function MainChatArea({
             onAddMember={() => setShowAddMemberModal(true)}
             onStartCall={(audioOnly) => activeContact && startCall(activeContact.id, audioOnly)}
             onRemoveContact={() => activeContact && handleRemoveContact(activeContact.id)}
+            onLeaveGroup={() => activeGroup && handleLeaveGroup(activeGroup.id)}
             onClearChat={() => activeContact ? handleClearChat(activeContact.id) : activeGroup && handleClearChat(activeGroup.id, true)}
             onMove={() => {
               if (activeContact) {

@@ -113,10 +113,19 @@ export function MessageList({
   const isRestoring = useRef(false);
   const lastScrollTop = useRef(0);
   const isFirstRenderOfChat = useRef(true);
+  const unreadCountOnEnterRef = useRef(0);
+  const firstUnreadMessageIdRef = useRef<string | null>(null);
 
   // Update isFirstRenderOfChat synchronously during render to disable animations immediately
   if (chatId !== currentChatId.current) {
     isFirstRenderOfChat.current = true;
+    unreadCountOnEnterRef.current = activeContact?.unread_count || activeGroup?.unread_count || 0;
+    if (unreadCountOnEnterRef.current > 0 && filteredMessages.length > 0) {
+      const idx = Math.max(0, filteredMessages.length - unreadCountOnEnterRef.current);
+      firstUnreadMessageIdRef.current = filteredMessages[idx]?.id || null;
+    } else {
+      firstUnreadMessageIdRef.current = null;
+    }
   }
   
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
@@ -211,6 +220,16 @@ export function MessageList({
         const saved = (chatId && scrollPositionsRef.current) ? scrollPositionsRef.current[chatId] : null;
         
         const restore = () => {
+          if (firstUnreadMessageIdRef.current) {
+            const el = document.getElementById(`message-${firstUnreadMessageIdRef.current}`);
+            if (el && container) {
+              // Scroll to the unread message with a small top padding
+              container.scrollTop = Math.max(0, el.offsetTop - 60);
+              setIsAtBottom(false);
+              return;
+            }
+          }
+
           if (saved && !saved.wasAtBottom && saved.scrollTop !== undefined) {
             container.scrollTop = Math.max(0, saved.scrollTop);
             setIsAtBottom(false);
@@ -332,11 +351,21 @@ export function MessageList({
           const prevMsg = index > 0 ? filteredMessages[index - 1] : null;
           const nextMsg = index < filteredMessages.length - 1 ? filteredMessages[index + 1] : null;
           const repliedMsg = msg.reply_to ? filteredMessages.find(m => m.id === msg.reply_to) : null;
+          
+          const isFirstUnread = firstUnreadMessageIdRef.current === msg.id;
 
           return (
-            <MessageItem
-              key={msg.id}
-              msg={msg}
+            <React.Fragment key={msg.id}>
+              {isFirstUnread && (
+                <div className="w-full flex items-center justify-center my-4 relative">
+                  <div className="absolute w-full h-px bg-indigo-500/30"></div>
+                  <span className="relative bg-white dark:bg-neutral-900 px-4 py-1 rounded-full text-xs font-medium text-indigo-500 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/40 shadow-sm">
+                    {t('chat.newMessages') || 'Новые сообщения'}
+                  </span>
+                </div>
+              )}
+              <MessageItem
+                msg={msg}
               index={index}
               prevMsg={prevMsg}
               nextMsg={nextMsg}
@@ -370,6 +399,7 @@ export function MessageList({
               onUnpinMessage={onUnpinMessage}
               onMessageClick={onMessageClick}
             />
+            </React.Fragment>
           );
         })}
       <div ref={messagesEndRef} />

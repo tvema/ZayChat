@@ -65,9 +65,36 @@ export function MessageItem({
   setEditingMessage, handleDeleteMessage,
   onSetReminder, pinnedMessageIds = [], onPinMessage, onUnpinMessage, onMessageClick
 }: MessageItemProps) {
+  const [showBlacklistedContent, setShowBlacklistedContent] = useState(false);
+  const [dragX, setDragX] = useState(0);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const touchIsSwiping = useRef<boolean>(false);
+
+  useEffect(() => {
+    const handleActionRequest = (e: any) => {
+      if (e.detail?.messageId === msg.id) {
+        if (e.detail.action === 'reply') {
+          setReplyingTo(msg);
+        } else if (e.detail.action === 'forward') {
+          setForwardingMessage(msg);
+          setShowForwardModal(true);
+        }
+      }
+    };
+    window.addEventListener('message-action-request', handleActionRequest);
+    return () => window.removeEventListener('message-action-request', handleActionRequest);
+  }, [msg, setReplyingTo, setForwardingMessage, setShowForwardModal]);
+
   const isSystem = msg.sender_id === 'system';
   const isPrevSystem = prevMsg?.sender_id === 'system';
   const isNextSystem = nextMsg?.sender_id === 'system';
+
+  const isSenderBlacklisted = Boolean(
+    msg.group_id && 
+    userContacts && 
+    userContacts.some(c => String(c.id) === String(msg.sender_id) && c.circle_type === 'blacklist')
+  );
 
   const msgTime = new Date(msg.created_at.includes('T') ? msg.created_at : msg.created_at.replace(' ', 'T') + 'Z').getTime();
   const prevMsgTime = prevMsg ? new Date(prevMsg.created_at.includes('T') ? prevMsg.created_at : prevMsg.created_at.replace(' ', 'T') + 'Z').getTime() : 0;
@@ -124,13 +151,8 @@ export function MessageItem({
   const theme = isMine ? chatTheme.currentUser : chatTheme.opponent;
   const largeEmoji = isOnlyEmojis(msg.content);
 
-  const [dragX, setDragX] = useState(0);
   const swipeThreshold = 60;
   
-  const touchStartX = useRef<number | null>(null);
-  const touchStartY = useRef<number | null>(null);
-  const touchIsSwiping = useRef<boolean>(false);
-
   const handleTouchStart = (e: React.TouchEvent) => {
     if (typeof window !== 'undefined' && window.getSelection()?.toString().length) return;
     touchStartX.current = e.touches[0].clientX;
@@ -186,8 +208,10 @@ export function MessageItem({
     else dynamicBorderRadius += ' rounded-tl-md rounded-bl-md';
   }
 
-  const reactionCounts = msg.reactions.reduce((acc, r) => {
-    acc[r.emoji] = (acc[r.emoji] || 0) + 1;
+  const reactionCounts = (msg.reactions || []).reduce((acc, r) => {
+    if (r.emoji) {
+      acc[r.emoji] = (acc[r.emoji] || 0) + 1;
+    }
     return acc;
   }, {} as Record<string, number>);
 
@@ -265,20 +289,31 @@ export function MessageItem({
     setActiveDropdownId(activeDropdownId === msg.id ? null : msg.id);
   };
 
-  useEffect(() => {
-    const handleActionRequest = (e: any) => {
-      if (e.detail?.messageId === msg.id) {
-        if (e.detail.action === 'reply') {
-          setReplyingTo(msg);
-        } else if (e.detail.action === 'forward') {
-          setForwardingMessage(msg);
-          setShowForwardModal(true);
-        }
-      }
-    };
-    window.addEventListener('message-action-request', handleActionRequest);
-    return () => window.removeEventListener('message-action-request', handleActionRequest);
-  }, [msg, setReplyingTo, setForwardingMessage, setShowForwardModal]);
+  if (isSenderBlacklisted && !showBlacklistedContent) {
+    return (
+      <Fragment>
+        {showDateSeparator && (
+          <div className="flex justify-center my-6">
+            <span className="px-3 py-1 bg-neutral-100 dark:bg-neutral-800/60 text-neutral-500 dark:text-neutral-400 text-xs font-medium rounded-full border border-neutral-200/60 dark:border-neutral-700/50">
+              {formatDateSeparator(msgTime)}
+            </span>
+          </div>
+        )}
+        <motion.div
+           initial={{ opacity: 0, y: 5 }}
+           animate={{ opacity: 1, y: 0 }}
+           className="flex justify-center my-2 group outline-none"
+        >
+          <div className="bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 text-xs px-4 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-700 shadow-sm font-medium flex items-center justify-between gap-3">
+             <span>Сообщение от заблокированного пользователя</span>
+             <button onClick={() => setShowBlacklistedContent(true)} className="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">
+               Просмотреть
+             </button>
+          </div>
+        </motion.div>
+      </Fragment>
+    );
+  }
 
   if (trimmedContent === '[[SYSTEM_REQUEST_UNBLOCK]]') {
     return (

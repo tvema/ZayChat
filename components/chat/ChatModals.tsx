@@ -21,6 +21,7 @@ interface ChatModalsProps {
   token: string | null;
   contacts: User[];
   groups: Group[];
+  messages: Message[];
   activeContact: User | null;
   activeGroup: Group | null;
 
@@ -88,6 +89,7 @@ export function ChatModals({
   token,
   contacts,
   groups,
+  messages,
   activeContact,
   activeGroup,
   showInviteModal,
@@ -173,6 +175,7 @@ export function ChatModals({
         onClose={() => setShowUserInfoModal(false)} 
         user={activeContact} 
         currentUser={user}
+        messages={messages}
       />
 
       <ProfileModal
@@ -236,6 +239,7 @@ export function ChatModals({
         group={activeGroup}
         token={token || ''}
         currentUser={user}
+        messages={messages}
         onGroupDeleted={(groupId) => {
           setGroups(prev => prev.filter(g => g.id !== groupId));
           if (activeGroup?.id === groupId) {

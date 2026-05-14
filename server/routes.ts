@@ -33,6 +33,16 @@ try {
 }
 
 export function setupRoutes(server: express.Express, io: any, connectedUsers: Map<string, Set<string>>) {
+  const notifyContactUpdated = (userId1: string, userId2: string) => {
+    [userId1, userId2].forEach(userId => {
+      if (!userId) return;
+      const targetSockets = connectedUsers.get(userId);
+      if (targetSockets) {
+        targetSockets.forEach(socketId => io.to(socketId).emit('contact:updated'));
+      }
+    });
+  };
+
   // 1. Check Invite Code
   server.get('/api/invites/check/:code', (req, res) => {
     const { code } = req.params;
@@ -704,6 +714,7 @@ export function setupRoutes(server: express.Express, io: any, connectedUsers: Ma
     const { contactId } = req.params;
     try {
       db.prepare('DELETE FROM contacts WHERE user_id = ? AND contact_id = ?').run(req.user.userId, contactId);
+      notifyContactUpdated(req.user.userId, contactId);
       res.json({ success: true });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
@@ -719,6 +730,7 @@ export function setupRoutes(server: express.Express, io: any, connectedUsers: Ma
     }
     try {
       db.prepare('UPDATE contacts SET circle_type = ? WHERE user_id = ? AND contact_id = ?').run(circle_type, req.user.userId, contactId);
+      notifyContactUpdated(req.user.userId, contactId);
       res.json({ success: true, circle_type });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
@@ -809,7 +821,8 @@ export function setupRoutes(server: express.Express, io: any, connectedUsers: Ma
           receiver_id: contactId,
           content,
           status: 'sent',
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          reactions: []
         }));
       }
 
@@ -895,6 +908,7 @@ export function setupRoutes(server: express.Express, io: any, connectedUsers: Ma
       if (!circle) return res.status(404).json({ error: 'Circle not found' });
       
       db.prepare('INSERT OR IGNORE INTO contact_circle_members (circle_id, contact_id) VALUES (?, ?)').run(req.params.id, contactId);
+      notifyContactUpdated(req.user.userId, contactId);
       res.json({ success: true });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
@@ -907,6 +921,7 @@ export function setupRoutes(server: express.Express, io: any, connectedUsers: Ma
       if (!circle) return res.status(404).json({ error: 'Circle not found' });
 
       db.prepare('DELETE FROM contact_circle_members WHERE circle_id = ? AND contact_id = ?').run(req.params.id, req.params.contactId);
+      notifyContactUpdated(req.user.userId, req.params.contactId);
       res.json({ success: true });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
@@ -942,6 +957,7 @@ export function setupRoutes(server: express.Express, io: any, connectedUsers: Ma
           db.prepare('INSERT OR IGNORE INTO contact_circle_members (circle_id, contact_id) VALUES (?, ?)').run(toCircleId, contactId);
         }
       })();
+      notifyContactUpdated(req.user.userId, contactId);
       res.json({ success: true });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
@@ -1038,6 +1054,12 @@ export function setupRoutes(server: express.Express, io: any, connectedUsers: Ma
       if (!member || member.role !== 'admin') {
         return res.status(403).json({ error: 'Only admins can add members' });
       }
+
+      // Check if the user being added has blacklisted the admin, or if admin has blacklisted the user.
+      const isBlacklisted = db.prepare('SELECT 1 FROM contacts WHERE ((user_id = ? AND contact_id = ?) OR (user_id = ? AND contact_id = ?)) AND circle_type = ?').get(userId, req.user.userId, req.user.userId, userId, 'blacklist');
+      if (isBlacklisted) {
+        return res.status(403).json({ error: 'Пользователь ограничил возможность добавления в группы' });
+      }
       
       let encryptedKeysJson = null;
       if (encrypted_keys) {
@@ -1077,7 +1099,30 @@ export function setupRoutes(server: express.Express, io: any, connectedUsers: Ma
     }
   });
 
-  // 8.4 Get Group Members
+  // 8.4 Leave Group
+  server.post('/api/groups/:groupId/leave', authenticateToken, (req: any, res) => {
+    try {
+      const { groupId } = req.params;
+      const userId = req.user.userId;
+
+      // Check if user is in group
+      const member = db.prepare('SELECT role FROM group_members WHERE group_id = ? AND user_id = ?').get(groupId, userId);
+      if (!member) {
+        return res.status(404).json({ error: 'Вы не состоите в этой группе' });
+      }
+
+      db.prepare('DELETE FROM group_members WHERE group_id = ? AND user_id = ?').run(groupId, userId);
+
+      // Notify others in the group that the user left
+      io.to(`group:${groupId}`).emit('group:updated', groupId);
+
+      res.json({ success: true });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // 8.5 Get Group Members
   server.get('/api/groups/:groupId/members', authenticateToken, (req: any, res) => {
     try {
       const { groupId } = req.params;
@@ -1213,11 +1258,9 @@ export function setupRoutes(server: express.Express, io: any, connectedUsers: Ma
           FROM messages m
           JOIN users u ON m.sender_id = u.id
           LEFT JOIN users u2 ON m.forwarded_from = u2.id
-          WHERE m.group_id = ? AND m.sender_id NOT IN (
-            SELECT contact_id FROM contacts WHERE user_id = ? AND circle_type = 'blacklist'
-          )
+          WHERE m.group_id = ?
         `;
-        const params: any[] = [contactId, req.user.userId];
+        const params: any[] = [contactId];
         
         if (before) {
           query += ` AND m.created_at < ?`;
@@ -1244,11 +1287,8 @@ export function setupRoutes(server: express.Express, io: any, connectedUsers: Ma
           LEFT JOIN users u2 ON m.forwarded_from = u2.id
           WHERE ((m.sender_id = ? AND m.receiver_id = ?)
              OR (m.sender_id = ? AND m.receiver_id = ?))
-             AND m.sender_id NOT IN (
-               SELECT contact_id FROM contacts WHERE user_id = ? AND circle_type = 'blacklist'
-             )
         `;
-        const params: any[] = [req.user.userId, contactId, contactId, req.user.userId, req.user.userId];
+        const params: any[] = [req.user.userId, contactId, contactId, req.user.userId];
         
         if (before) {
           query += ` AND m.created_at < ?`;

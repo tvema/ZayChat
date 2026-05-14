@@ -272,6 +272,11 @@ export function useSocketEvents({
         if (prev.find(c => c.id === newContact.id)) return prev;
         return [...prev, { ...newContact, is_online: true }];
       });
+      fetchContacts();
+    });
+
+    socket.on('contact:updated', () => {
+      fetchContacts();
     });
 
     socket.on('group:new', (newGroup: Group) => {
@@ -420,6 +425,7 @@ export function useSocketEvents({
       socket.off('reaction:new');
       socket.off('reaction:update');
       socket.off('contact:new');
+      socket.off('contact:updated');
       socket.off('group:new');
       socket.off('group:removed');
       socket.off('group:updated');

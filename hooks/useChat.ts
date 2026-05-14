@@ -1268,6 +1268,32 @@ export function useChat() {
     });
   }, [token, fetchContacts, fetchContactCircles, activeContact, showConfirm, t]);
 
+  const handleLeaveGroup = useCallback(async (groupId: string) => {
+    showConfirm({
+      message: 'Вы уверены, что хотите покинуть группу?',
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/groups/${groupId}/leave`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            fetchGroups();
+            if (activeGroup?.id === groupId) {
+              setActiveGroup(null);
+            }
+            if (socket) {
+              socket.emit('leaveRoom', `group_${groupId}`);
+              socket.emit('roomEvent', { roomId: `group_${groupId}`, type: 'memberLeft' });
+            }
+          }
+        } catch (err) {
+          console.error('Failed to leave group:', err);
+        }
+      }
+    });
+  }, [token, fetchGroups, activeGroup, socket, showConfirm]);
+
   const handleClearChat = useCallback(async (contactId: string, isGroup: boolean = false) => {
     showConfirm({
       message: t('common.clearChatConfirm') || 'Are you sure you want to clear this chat?',
@@ -1400,10 +1426,10 @@ export function useChat() {
     setActiveContact(prev => {
       if (!prev) return prev;
       const updatedContact = contacts.find(c => c.id === prev.id);
-      if (updatedContact && updatedContact.is_online !== prev.is_online) {
+      if (updatedContact && JSON.stringify(updatedContact) !== JSON.stringify(prev)) {
         return updatedContact;
       }
-        return prev;
+      return prev;
     });
   }, [contacts]);
 
@@ -1494,6 +1520,7 @@ export function useChat() {
     handleUpdateProfile,
     handleChangePassword,
     handleRemoveContact,
+    handleLeaveGroup,
     handleClearChat,
     handleMoveContactToCircle,
     handleAddUserToGroup,

@@ -26,6 +26,7 @@ interface ChatHeaderProps {
   onSetReminder?: () => void;
   onShareContacts?: () => void;
   onToggleSearch?: () => void;
+  onLeaveGroup?: () => void;
 }
 
 export function ChatHeader({
@@ -46,6 +47,7 @@ export function ChatHeader({
   onSetReminder,
   onShareContacts,
   onToggleSearch,
+  onLeaveGroup,
 }: ChatHeaderProps) {
   const { t } = useLanguage();
   const hasTriggeredReminder = activeChatReminders.some(r => !r.is_dismissed && new Date() >= new Date(r.remind_at));
@@ -211,12 +213,14 @@ export function ChatHeader({
         <div className="ml-auto md:ml-0">
           <ContactMenu 
             onInfo={onShowInfo}
-            onMove={onMove}
-            onAddGroup={onAddGroup}
+            onMove={activeContact ? onMove : undefined}
+            onAddGroup={activeContact ? onAddGroup : undefined}
             onClearChat={onClearChat}
             onDelete={activeContact ? onRemoveContact : undefined}
             onSetReminder={onSetReminder}
-            onShareContacts={onShareContacts}
+            onShareContacts={activeContact ? onShareContacts : undefined}
+            onLeaveGroup={activeGroup ? onLeaveGroup : undefined}
+            isGroup={!!activeGroup}
             trigger={
               <button 
                 className="p-2 md:p-2.5 text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full transition-colors"
