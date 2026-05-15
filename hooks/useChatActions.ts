@@ -123,7 +123,9 @@ export function useChatActions(token: string | null, activeContact: User | null,
           }
 
           let mediaMetadata = {};
-          if (file.type.startsWith('video/')) {
+          if (file.type.startsWith('image/')) {
+            mediaMetadata = await generateImageMetadata(file);
+          } else if (file.type.startsWith('video/')) {
             mediaMetadata = await generateVideoMetadata(file);
           }
 

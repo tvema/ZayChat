@@ -564,7 +564,7 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
   }
 
   if (loading) {
-    if ((fileData.mime?.startsWith('image/') || fileData.mime?.startsWith('video/')) && fileData.thumbnail && fileData.width && fileData.height) {
+    if ((fileData.mime?.startsWith('image/') || fileData.mime?.startsWith('video/')) && fileData.width && fileData.height) {
        // Maintain aspect ratio while loading
        const maxWidth = 500;
        const maxHeight = 256; // 64 * 4 for h-64
@@ -586,13 +586,15 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
            style={{ width: w, height: h, maxWidth: '100%' }}
            onClick={fileData.mime?.startsWith('video/') && !shouldDownload ? () => setShouldDownload(true) : undefined}
          >
-           <Image
-             src={fileData.thumbnail}
-             alt="loading"
-             fill
-             className="object-cover transition-opacity"
-             unoptimized
-           />
+           {fileData.thumbnail && (
+             <Image
+               src={fileData.thumbnail}
+               alt="loading"
+               fill
+               className="object-cover transition-opacity"
+               unoptimized
+             />
+           )}
            <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/10">
              {isDecrypting ? (
                <Lock size={24} className="text-white/90 animate-pulse drop-shadow-md mb-2" />

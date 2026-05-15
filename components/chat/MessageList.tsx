@@ -115,10 +115,12 @@ export function MessageList({
   const isFirstRenderOfChat = useRef(true);
   const unreadCountOnEnterRef = useRef(0);
   const firstUnreadMessageIdRef = useRef<string | null>(null);
+  const hasUserScrolledRef = useRef(false);
 
   // Update isFirstRenderOfChat synchronously during render to disable animations immediately
   if (chatId !== currentChatId.current) {
     isFirstRenderOfChat.current = true;
+    hasUserScrolledRef.current = false;
     const newUnreadCount = activeContact?.unread_count || activeGroup?.unread_count || 0;
     unreadCountOnEnterRef.current = newUnreadCount;
     // We do NOT set firstUnreadMessageIdRef here if messages are empty, we will do it when isFirstLoad triggers
@@ -161,6 +163,11 @@ export function MessageList({
     
     // Prevent saving bogus scroll positions during chat switch or when empty
     if (chatId !== currentChatId.current || filteredMessages.length === 0) return;
+
+    // Track that the user has manually scrolled, so we stop anchoring to the unread message
+    if (!isFirstRenderOfChat.current) {
+      hasUserScrolledRef.current = true;
+    }
 
     if (activeDropdownId) {
       setActiveDropdownId(null);
@@ -324,6 +331,24 @@ export function MessageList({
     const observer = new ResizeObserver(() => {
       // Don't auto-scroll while restoring position, changing chats, or scrolling up manually
       if (isRestoring.current || chatId !== currentChatId.current) return;
+      
+      const container = scrollContainerRef.current;
+      if (!container) return;
+
+      // If user hasn't explicitly scrolled and there is an unread message boundary, keep it pinned
+      if (!hasUserScrolledRef.current && firstUnreadMessageIdRef.current) {
+        const el = document.getElementById(`message-${firstUnreadMessageIdRef.current}`);
+        if (el) {
+          isRestoring.current = true;
+          // Notice we subtract 60 to keep the badge visible since we scroll to the actual message ID
+          container.scrollTop = Math.max(0, el.offsetTop - 60);
+          setTimeout(() => {
+            isRestoring.current = false;
+          }, 50);
+          return;
+        }
+      }
+
       if (isAtBottomRef.current) {
         scrollToBottom('auto');
       }
@@ -358,7 +383,6 @@ export function MessageList({
         ref={scrollContainerRef}
         onScroll={handleScroll}
         className="flex-1 overflow-y-auto no-scrollbar p-4 md:p-6"
-        style={{ overflowAnchor: 'none' }}
       >
         {isLoadingMore && (
           <div className="flex justify-center py-2">
@@ -379,7 +403,7 @@ export function MessageList({
                 <div className="w-full flex items-center justify-center my-4 relative">
                   <div className="absolute w-full h-px bg-indigo-500/30"></div>
                   <span className="relative bg-white dark:bg-neutral-900 px-4 py-1 rounded-full text-xs font-medium text-indigo-500 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/40 shadow-sm">
-                    {t('chat.newMessages') || 'Новые сообщения'}
+                    {t('common.newMessages') || 'Новые сообщения'}
                   </span>
                 </div>
               )}
