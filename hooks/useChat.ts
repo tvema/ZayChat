@@ -611,7 +611,10 @@ export function useChat() {
     
     const controller = new AbortController();
     
-    fetch(`/api/messages/${id}?isGroup=${isGroup}&limit=30`, {
+    const unreadCount = isGroup ? (activeGroup?.unread_count || 0) : (activeContact?.unread_count || 0);
+    const limit = Math.min(100, Math.max(30, unreadCount + 10));
+    
+    fetch(`/api/messages/${id}?isGroup=${isGroup}&limit=${limit}`, {
       headers: { 'Authorization': `Bearer ${token}` },
       signal: controller.signal
     })
@@ -619,7 +622,7 @@ export function useChat() {
       if (res.ok) {
         const text = await res.text();
         const rawData = text ? JSON.parse(text) : [];
-        if (rawData.length < 30) {
+        if (rawData.length < limit) {
           setHasMoreMessages(false);
         }
         

@@ -119,9 +119,11 @@ export function MessageList({
   // Update isFirstRenderOfChat synchronously during render to disable animations immediately
   if (chatId !== currentChatId.current) {
     isFirstRenderOfChat.current = true;
-    unreadCountOnEnterRef.current = activeContact?.unread_count || activeGroup?.unread_count || 0;
-    if (unreadCountOnEnterRef.current > 0 && filteredMessages.length > 0) {
-      const idx = Math.max(0, filteredMessages.length - unreadCountOnEnterRef.current);
+    const newUnreadCount = activeContact?.unread_count || activeGroup?.unread_count || 0;
+    unreadCountOnEnterRef.current = newUnreadCount;
+    // We do NOT set firstUnreadMessageIdRef here if messages are empty, we will do it when isFirstLoad triggers
+    if (newUnreadCount > 0 && filteredMessages.length > 0) {
+      const idx = Math.max(0, filteredMessages.length - newUnreadCount);
       firstUnreadMessageIdRef.current = filteredMessages[idx]?.id || null;
     } else {
       firstUnreadMessageIdRef.current = null;
@@ -201,7 +203,16 @@ export function MessageList({
     const isNewChat = chatId !== currentChatId.current;
     const isFirstLoad = chatId && !chatInitialized.current[chatId] && filteredMessages.length > 0;
 
-    if (isNewChat || isFirstLoad) {
+    let justComputedFirstUnread = false;
+    if (unreadCountOnEnterRef.current > 0 && !firstUnreadMessageIdRef.current) {
+      if (filteredMessages.length > 0 && (filteredMessages.length >= unreadCountOnEnterRef.current || !isLoadingMore)) {
+        const idx = Math.max(0, filteredMessages.length - unreadCountOnEnterRef.current);
+        firstUnreadMessageIdRef.current = filteredMessages[idx]?.id || null;
+        justComputedFirstUnread = true;
+      }
+    }
+
+    if (isNewChat || isFirstLoad || justComputedFirstUnread) {
       if (isNewChat) {
         currentChatId.current = chatId;
         isFirstRenderOfChat.current = true;
@@ -212,7 +223,6 @@ export function MessageList({
         const container = scrollContainerRef.current;
         if (!container) return;
         
-        if (chatId) chatInitialized.current[chatId] = true;
         prevMessagesLength.current = filteredMessages.length;
         prevMessagesRef.current = filteredMessages;
         isRestoring.current = true;
@@ -228,6 +238,11 @@ export function MessageList({
               setIsAtBottom(false);
               return;
             }
+          } else if (unreadCountOnEnterRef.current > 0 && isLoadingMore) {
+            // We haven't found the unread boundary yet and are still loading. Stay near top.
+            container.scrollTop = 0;
+            setIsAtBottom(false);
+            return;
           }
 
           if (saved && !saved.wasAtBottom && saved.scrollTop !== undefined) {
@@ -254,6 +269,10 @@ export function MessageList({
               isFirstRenderOfChat.current = false;
             }
           }, 100);
+          
+          if (chatId && (!unreadCountOnEnterRef.current || firstUnreadMessageIdRef.current || !isLoadingMore)) {
+             chatInitialized.current[chatId] = true;
+          }
         }, 30);
 
         return () => {
