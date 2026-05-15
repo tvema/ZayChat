@@ -495,6 +495,33 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fileData.fileId, fileData.url, fileData.isEncrypted, senderId, socket, retryCount, shouldDownload]);
 
+  const getContainerDimensions = () => {
+    if (!fileData.width || !fileData.height) return null;
+    const maxWidth = 500;
+    const maxHeight = 256; 
+    let w = fileData.width;
+    let h = fileData.height;
+    
+    if (w > maxWidth) {
+       h = Math.round(h * (maxWidth / w));
+       w = maxWidth;
+    }
+    if (h > maxHeight) {
+       w = Math.round(w * (maxHeight / h));
+       h = maxHeight;
+    }
+    
+    return { 
+      width: '100%', 
+      maxWidth: w, 
+      height: 'auto', 
+      aspectRatio: `${fileData.width}/${fileData.height}` 
+    };
+  };
+
+  const containerStyle = getContainerDimensions();
+  const hasDimensions = !!containerStyle;
+
   if (isThumbnail) {
     if (loading) {
       if ((fileData.mime?.startsWith('image/') || fileData.mime?.startsWith('video/')) && fileData.thumbnail) {
@@ -564,26 +591,11 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
   }
 
   if (loading) {
-    if ((fileData.mime?.startsWith('image/') || fileData.mime?.startsWith('video/')) && fileData.width && fileData.height) {
-       // Maintain aspect ratio while loading
-       const maxWidth = 500;
-       const maxHeight = 256; // 64 * 4 for h-64
-       let w = fileData.width;
-       let h = fileData.height;
-       
-       if (w > maxWidth) {
-          h = Math.round(h * (maxWidth / w));
-          w = maxWidth;
-       }
-       if (h > maxHeight) {
-          w = Math.round(w * (maxHeight / h));
-          h = maxHeight;
-       }
-
+    if ((fileData.mime?.startsWith('image/') || fileData.mime?.startsWith('video/')) && hasDimensions) {
        return (
          <div 
-           className="rounded-xl overflow-hidden border border-neutral-200 bg-neutral-50 relative flex items-center justify-center min-h-[100px] cursor-pointer"
-           style={{ width: w, height: h, maxWidth: '100%' }}
+           className="rounded-xl overflow-hidden border border-neutral-200 bg-neutral-50 relative flex items-center justify-center min-h-[100px] cursor-pointer max-w-full w-full"
+           style={containerStyle || undefined}
            onClick={fileData.mime?.startsWith('video/') && !shouldDownload ? () => setShouldDownload(true) : undefined}
          >
            {fileData.thumbnail && (
@@ -669,27 +681,6 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
   }
 
   if (fileData.mime?.startsWith('image/')) {
-    const hasDimensions = fileData.width && fileData.height;
-    const maxWidth = 500;
-    const maxHeight = 256;
-    let fallbackStyle = {};
-    
-    if (hasDimensions) {
-       let w = fileData.width;
-       let h = fileData.height;
-       
-       if (w > maxWidth) {
-          h = Math.round(h * (maxWidth / w));
-          w = maxWidth;
-       }
-       if (h > maxHeight) {
-          w = Math.round(w * (maxHeight / h));
-          h = maxHeight;
-       }
-       // Use maxWidth and aspectRatio so it flexes down properly on small screens
-       fallbackStyle = { width: '100%', maxWidth: w, height: 'auto', aspectRatio: `${fileData.width}/${fileData.height}` };
-    }
-
     return (
       <>
         <div 
@@ -699,7 +690,7 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
             setIsViewerOpen(true);
           }}
           onContextMenu={(e) => e.preventDefault()}
-          style={hasDimensions ? { ...fallbackStyle, WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none' } : { WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none' }}
+          style={hasDimensions ? { ...containerStyle, WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none' } : { WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none' }}
         >
           {fileData.thumbnail && (
             <Image
@@ -732,31 +723,10 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
   }
 
   if (fileData.mime.startsWith('video/')) {
-    const hasDimensions = fileData.width && fileData.height;
-    let fallbackStyle: any = undefined;
-    
-    if (hasDimensions) {
-       const maxWidth = 500;
-       const maxHeight = 256; 
-       let w = fileData.width!;
-       let h = fileData.height!;
-       
-       if (w > maxWidth) {
-          h = Math.round(h * (maxWidth / w));
-          w = maxWidth;
-       }
-       if (h > maxHeight) {
-          w = Math.round(w * (maxHeight / h));
-          h = maxHeight;
-       }
-       // Use maxWidth and aspectRatio so it flexes down properly on small screens
-       fallbackStyle = { width: '100%', maxWidth: w, height: 'auto', aspectRatio: `${fileData.width}/${fileData.height}` };
-    }
-
     return (
       <div 
         className="rounded-xl overflow-hidden border border-neutral-200 justify-center max-w-full w-full bg-neutral-50 flex items-center relative min-h-[100px]"
-        style={hasDimensions ? fallbackStyle : undefined}
+        style={hasDimensions ? containerStyle || undefined : undefined}
       >
         {fileData.thumbnail && (
           <Image
@@ -771,7 +741,7 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
           src={blobUrl!} 
           controls 
           className="w-full h-auto max-w-full max-h-64 object-contain z-10 relative" 
-          style={hasDimensions ? { ...fallbackStyle, width: '100%', height: '100%' } : undefined} 
+          style={hasDimensions ? { ...containerStyle, width: '100%', height: '100%' } : undefined} 
         />
       </div>
     );
