@@ -7,7 +7,7 @@ import { Check, CheckCheck, Forward, Reply, SmilePlus, MoreHorizontal, Edit2, Tr
 import { createPortal } from 'react-dom';
 import { User, Message, Group } from '@/types/chat';
 import { isOnlyEmojis } from '@/lib/chatUtils';
-import { renderMessageText } from '@/lib/chatComponents';
+import { renderMessageText, CUSTOM_EMOJIS } from '@/lib/chatComponents';
 import { FileAttachment } from '@/components/FileAttachment';
 import { ContactsShareViewer } from '@/components/chat/ContactsShareViewer';
 import type { Socket } from 'socket.io-client';
@@ -544,7 +544,18 @@ export function MessageItem({
                     }}
                     className="flex items-center gap-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-700 px-2 py-0.5 rounded-full transition-colors"
                   >
-                    <span className="text-xl leading-none">{emoji}</span>
+                    {emoji.startsWith(':') && emoji.endsWith(':') && CUSTOM_EMOJIS.includes(emoji.slice(1, -1)) ? (
+                      <Image 
+                        src={`/эмодзи зайчат/${emoji.slice(1, -1)}.png`}
+                        alt={emoji}
+                        width={24}
+                        height={24}
+                        className="inline-block object-contain"
+                        unoptimized
+                      />
+                    ) : (
+                      <span className="text-xl leading-none">{emoji}</span>
+                    )}
                     {count > 1 && <span className="text-sm text-neutral-500 dark:text-neutral-400 font-medium">{count}</span>}
                   </button>
                 ))}

@@ -10,7 +10,7 @@ const EmojiPicker = dynamic(() => import('emoji-picker-react').then(mod => mod.d
 import { User, Message, Group } from '@/types/chat';
 import { chatTheme } from '@/chat-theme.config';
 import { isOnlyEmojis } from '@/lib/chatUtils';
-import { renderMessageText } from '@/lib/chatComponents';
+import { renderMessageText, CUSTOM_EMOJIS } from '@/lib/chatComponents';
 import { FileAttachment } from '@/components/FileAttachment';
 import type { Socket } from 'socket.io-client';
 import { useTheme } from 'next-themes';
@@ -558,11 +558,16 @@ export function MessageList({
                 </div>
               ) : (
                 <EmojiPicker 
-                  onEmojiClick={(emojiData) => {
-                    handleReaction(emojiData);
+                  onEmojiClick={(emojiData: any) => {
+                    handleReaction(emojiData.isCustom ? { ...emojiData, emoji: `:${emojiData.id}:` } : emojiData);
                     setReactionMessageId(null);
                     setShowFullEmojiPicker(false);
                   }} 
+                  customEmojis={CUSTOM_EMOJIS.map(name => ({
+                    id: name,
+                    names: [name],
+                    imgUrl: `/эмодзи зайчат/${name}.png`
+                  }))}
                   width="100%" 
                   theme={(currentTheme === 'dark' ? 'dark' : 'light') as EmojiTheme}
                 />

@@ -13,6 +13,7 @@ import type { Socket } from 'socket.io-client';
 import { useTheme } from 'next-themes';
 import { useLanguage } from '../LanguageProvider';
 import { CameraModal } from '../CameraModal';
+import { CUSTOM_EMOJIS } from '@/lib/chatComponents';
 
 interface MessageInputProps {
   handleSendMessage: (content: string, file?: File, sendAsOriginal?: boolean, forceUnencrypted?: boolean) => Promise<void> | void;
@@ -468,13 +469,22 @@ export function MessageInput({
       {showEmojiPicker && (
         <div className="absolute bottom-full left-4 mb-2 z-50 shadow-2xl rounded-2xl overflow-hidden border border-neutral-100 dark:border-neutral-800 max-w-[calc(100vw-32px)]">
           <EmojiPicker 
-            onEmojiClick={(emojiData) => {
-              setInput(prev => prev + emojiData.emoji);
+            onEmojiClick={(emojiData: any) => {
+              if (emojiData.isCustom) {
+                setInput(prev => prev + `:${emojiData.id}:`);
+              } else {
+                setInput(prev => prev + emojiData.emoji);
+              }
               setShowEmojiPicker(false);
               setTimeout(() => {
                 textareaRef.current?.focus();
               }, 0);
             }} 
+            customEmojis={CUSTOM_EMOJIS.map(name => ({
+              id: name,
+              names: [name],
+              imgUrl: `/эмодзи зайчат/${name}.png`
+            }))}
             width="100%" 
             theme={(theme === 'dark' ? 'dark' : 'light') as EmojiTheme}
           />

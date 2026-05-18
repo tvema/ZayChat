@@ -1,6 +1,18 @@
+import { CUSTOM_EMOJIS } from './chatComponents';
+
 export const isOnlyEmojis = (text: string) => {
+  if (!text) return false;
+  let remainingText = text;
+  
+  for (const ce of CUSTOM_EMOJIS) {
+    remainingText = remainingText.split(`:${ce}:`).join('');
+  }
+  
+  remainingText = remainingText.replace(/\s/g, '');
+  if (remainingText === '') return true;
+  
   const emojiRegex = /^[\p{Emoji_Presentation}\p{Extended_Pictographic}]+$/u;
-  return emojiRegex.test(text.replace(/\s/g, ''));
+  return emojiRegex.test(remainingText);
 };
 
 export const compressImage = (file: File): Promise<File> => {
