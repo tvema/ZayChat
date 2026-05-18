@@ -242,22 +242,28 @@ export function MessageList({
             if (el && container) {
               // Scroll to the unread message with a small top padding
               container.scrollTop = Math.max(0, el.offsetTop - 60);
+              if (chatId && scrollPositionsRef.current) {
+                 scrollPositionsRef.current[chatId] = { scrollTop: container.scrollTop, wasAtBottom: false };
+              }
               setIsAtBottom(false);
               return;
             }
           } else if (unreadCountOnEnterRef.current > 0 && isLoadingMore) {
             // We haven't found the unread boundary yet and are still loading. Stay near top.
             container.scrollTop = 0;
+            if (chatId && scrollPositionsRef.current) {
+               scrollPositionsRef.current[chatId] = { scrollTop: 0, wasAtBottom: false };
+            }
             setIsAtBottom(false);
             return;
           }
 
           if (saved && !saved.wasAtBottom && saved.scrollTop !== undefined) {
-            container.scrollTop = Math.max(0, saved.scrollTop);
-            setIsAtBottom(false);
+             container.scrollTop = Math.max(0, saved.scrollTop);
+             setIsAtBottom(false);
           } else {
-            container.scrollTop = container.scrollHeight;
-            setIsAtBottom(true);
+             container.scrollTop = container.scrollHeight;
+             setIsAtBottom(true);
           }
         };
 
@@ -303,6 +309,10 @@ export function MessageList({
         if (container) {
           const scrollHeightDiff = container.scrollHeight - lastScrollTop.current;
           container.scrollTop += scrollHeightDiff;
+          
+          if (chatId && scrollPositionsRef.current && scrollPositionsRef.current[chatId]) {
+             scrollPositionsRef.current[chatId].scrollTop = container.scrollTop;
+          }
         }
       } else {
         // New message at the bottom
@@ -342,6 +352,11 @@ export function MessageList({
           isRestoring.current = true;
           // Notice we subtract 60 to keep the badge visible since we scroll to the actual message ID
           container.scrollTop = Math.max(0, el.offsetTop - 60);
+          
+          if (chatId && scrollPositionsRef.current && scrollPositionsRef.current[chatId]) {
+            scrollPositionsRef.current[chatId].scrollTop = container.scrollTop;
+          }
+          
           setTimeout(() => {
             isRestoring.current = false;
           }, 50);
