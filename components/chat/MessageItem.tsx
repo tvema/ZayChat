@@ -500,7 +500,7 @@ export function MessageItem({
                       </div>
                     ) : (
                       <div className={`whitespace-pre-wrap break-words [word-break:break-word] min-w-0 ${largeEmoji ? 'text-5xl py-2' : 'text-[15px] leading-relaxed'}`}>
-                        {renderMessageText(msg.content)}
+                        {renderMessageText(msg.content, largeEmoji)}
                         <span style={{ width: `${spacerWidth}px` }} className="inline-flex shrink-0 h-[14px] align-bottom opacity-0" aria-hidden="true">&#8203;</span>
                       </div>
                     )}

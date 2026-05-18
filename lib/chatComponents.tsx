@@ -26,7 +26,7 @@ export const CUSTOM_EMOJIS = [
   "эврика"
 ];
 
-export const renderMessageText = (text: string) => {
+export const renderMessageText = (text: string, largeEmoji?: boolean) => {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const parts = text.split(urlRegex);
   return parts.map((part, i) => {
@@ -44,14 +44,15 @@ export const renderMessageText = (text: string) => {
         {textParts.map((t, j) => {
           if (j % 2 === 1) {
             if (CUSTOM_EMOJIS.includes(t)) {
+              const size = largeEmoji ? 120 : 28;
               return (
                  <Image 
                    key={j} 
                    src={`/эмодзи зайчат/${t}.png`} 
                    alt={t} 
                    title={t}
-                   width={48} 
-                   height={48} 
+                   width={size} 
+                   height={size} 
                    className="inline-block align-middle mx-1 my-0.5 object-contain max-w-full"
                    unoptimized
                  />

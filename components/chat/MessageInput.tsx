@@ -3,6 +3,8 @@ import { safeLocalStorage } from '@/lib/safeStorage';
 
 
 import { useState, useRef, useEffect } from 'react';
+import ContentEditable, { ContentEditableEvent } from 'react-contenteditable';
+import { extractTextFromHTML } from '@/lib/richText';
 import { Paperclip, SmilePlus, Send, X, Edit2, Mic, Square, Trash2, Type, Camera } from 'lucide-react';
 import type { Theme as EmojiTheme } from 'emoji-picker-react';
 import dynamic from 'next/dynamic';
@@ -55,6 +57,26 @@ export function MessageInput({
   const { theme } = useTheme();
   const { t } = useLanguage();
   const [input, setInput] = useState('');
+  const [htmlContent, setHtmlContent] = useState('');
+
+  const parseInputToHTML = (text: string) => {
+     let html = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+     html = html.replace(/\n/g, '<br/>');
+     CUSTOM_EMOJIS.forEach((emoji) => {
+         const replaceStr = `:${emoji}:`;
+         const imgHtml = `<img src="/эмодзи зайчат/${emoji}.png" alt="${emoji}" title="${emoji}" width="28" height="28" style="display:inline-block; vertical-align:text-bottom; margin:0 2px;" class="custom-emoji cursor-default select-none pointer-events-none" unselectable="on" contenteditable="false" />`;
+         html = html.split(replaceStr).join(imgHtml);
+     });
+     return html;
+  };
+
+  useEffect(() => {
+      const computedHtml = parseInputToHTML(input);
+      if (extractTextFromHTML(htmlContent) !== input) {
+          setHtmlContent(computedHtml);
+      }
+  }, [input, htmlContent]);
+
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -247,7 +269,17 @@ export function MessageInput({
       setTimeout(() => {
         if (textareaRef.current) {
           textareaRef.current.focus();
-          textareaRef.current.setSelectionRange(textareaRef.current.value.length, textareaRef.current.value.length);
+          if ((textareaRef.current as any).value !== undefined && (textareaRef.current as any).setSelectionRange) {
+              (textareaRef.current as any).setSelectionRange((textareaRef.current as any).value.length, (textareaRef.current as any).value.length);
+          } else {
+             const el = textareaRef.current as any;
+             const range = document.createRange();
+             const sel = window.getSelection();
+             range.selectNodeContents(el);
+             range.collapse(false);
+             sel?.removeAllRanges();
+             sel?.addRange(range);
+          }
         }
       }, 100);
     } else if (!replyingTo) {
@@ -265,8 +297,11 @@ export function MessageInput({
     }
   }, [replyingTo]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value);
+  const handleInputChange = (e: any) => {
+    const val = typeof e.target.value === 'string' ? e.target.value : '';
+    setHtmlContent(val);
+    const newText = extractTextFromHTML(val);
+    setInput(newText);
     
     if (socket && (activeContact || activeGroup)) {
       const chatId = activeGroup?.id || activeContact?.id;
@@ -440,14 +475,14 @@ export function MessageInput({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (e: any) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       onSubmit();
     }
   };
 
-  const handlePaste = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handlePaste = (e: any) => {
     // @ts-ignore
     if (e.clipboardData?.files && e.clipboardData.files.length > 0) {
       // @ts-ignore
@@ -676,23 +711,25 @@ export function MessageInput({
               >
                 <SmilePlus size={20} />
               </button>
-              <textarea
-                ref={textareaRef}
-                value={input}
+              <ContentEditable
+                innerRef={textareaRef as any}
+                html={htmlContent}
+                disabled={isTranscribingVoice}
                 onChange={(e) => {
                   handleInputChange(e);
-                  const target = e.target as HTMLTextAreaElement;
-                  target.style.height = 'auto';
-                  target.style.height = `${Math.min(target.scrollHeight, 128)}px`;
+                  setTimeout(() => {
+                    if (textareaRef.current) {
+                      textareaRef.current.style.height = 'auto';
+                      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 128)}px`;
+                    }
+                  }, 0);
                 }}
-                onKeyDown={handleKeyDown}
-                // @ts-ignore
-                onPaste={handlePaste}
-                placeholder={isTranscribingVoice ? (t.common?.transcribing || 'Transcribing...') : (t.modals?.typeMessage || 'Type a message...')}
-                disabled={isTranscribingVoice}
-                rows={1}
-                className="flex-1 bg-transparent border-none py-2.5 px-3 focus:outline-none text-neutral-800 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 resize-none min-h-[44px] max-h-32"
-                style={{ height: 'auto' }}
+                onKeyDown={(e: any) => {
+                    handleKeyDown(e);
+                }}
+                onPaste={handlePaste as any}
+                className={"flex-1 bg-transparent border-none py-2.5 px-3 focus:outline-none text-neutral-800 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 min-h-[44px] max-h-32 text-[15px] leading-relaxed break-words overflow-y-auto whitespace-pre-wrap outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-neutral-400 empty:before:pointer-events-none empty:before:block"}
+                data-placeholder={isTranscribingVoice ? (t.common?.transcribing || 'Transcribing...') : (t.modals?.typeMessage || 'Type a message...')}
               />
             </>
           ) : (
