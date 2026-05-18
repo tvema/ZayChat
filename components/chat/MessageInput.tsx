@@ -58,6 +58,10 @@ export function MessageInput({
   const { t } = useLanguage();
   const [input, setInput] = useState('');
   const [htmlContent, setHtmlContent] = useState('');
+  const inputRef = useRef(input);
+  useEffect(() => {
+     inputRef.current = input;
+  }, [input]);
 
   const parseInputToHTML = (text: string) => {
      let html = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -419,6 +423,7 @@ export function MessageInput({
   const onSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     
+    const currentInput = inputRef.current;
     let isFileMessage = false;
     const trimmedEditing = editingMessage ? editingMessage.content.trim() : '';
     if (editingMessage && trimmedEditing.startsWith('{') && trimmedEditing.endsWith('}')) {
@@ -430,14 +435,14 @@ export function MessageInput({
       } catch (e) {}
     }
 
-    if (!input.trim() && !pendingFile && !isFileMessage) return;
+    if (!currentInput.trim() && !pendingFile && !isFileMessage) return;
     
     if (editingMessage && handleEditMessage && setEditingMessage) {
-      let newContent = input;
+      let newContent = currentInput;
       if (isFileMessage) {
         try {
           const parsed = JSON.parse(trimmedEditing);
-          parsed.text = input.trim();
+          parsed.text = currentInput.trim();
           newContent = JSON.stringify(parsed);
         } catch (e) {}
       }
@@ -465,7 +470,7 @@ export function MessageInput({
     const isForcedUnencrypted = pendingFile && pendingFile.type.startsWith('video/') && pendingFile.size > 20 * 1024 * 1024;
     const finalSendUnencrypted = isForcedUnencrypted ? true : sendUnencrypted;
 
-    handleSendMessage(input, pendingFile || undefined, sendAsOriginal, finalSendUnencrypted);
+    handleSendMessage(currentInput, pendingFile || undefined, sendAsOriginal, finalSendUnencrypted);
     setInput('');
     clearPendingFile();
     setSendAsOriginal(false);
@@ -476,9 +481,15 @@ export function MessageInput({
   };
 
   const handleKeyDown = (e: any) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      onSubmit();
+    if (e.key === 'Enter') {
+      const isMobile = window.innerWidth <= 768;
+      if (isMobile) {
+        return;
+      }
+      if (!e.shiftKey) {
+        e.preventDefault();
+        onSubmit();
+      }
     }
   };
 
