@@ -26,6 +26,7 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
   useEffect(() => {
     blobUrlRef.current = blobUrl;
   }, [blobUrl]);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isDecrypting, setIsDecrypting] = useState(false);
@@ -602,7 +603,7 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
     
     if (hasDimensions && containerStyle) {
       appliedStyle = { ...appliedStyle, ...containerStyle };
-    } else if (loading) {
+    } else if (loading || (!imageLoaded && isImage)) {
       // Conservative default for files without metadata to prevent collapsing
       // 256px perfectly matches max-h-64 used by the loaded image
       appliedStyle = { ...appliedStyle, width: '250px', height: '256px' };
@@ -613,7 +614,7 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
     return (
       <>
         <div 
-          className={`rounded-xl overflow-hidden border border-neutral-200 max-w-full bg-neutral-50 flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity relative min-h-[100px] ${!loading && !hasDimensions ? 'h-auto' : ''}`}
+          className={`rounded-xl overflow-hidden border border-neutral-200 max-w-full bg-neutral-50 flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity relative min-h-[100px] ${(!loading && !hasDimensions && (!isImage || imageLoaded)) ? 'h-auto' : ''}`}
           onClick={(e) => {
             e.stopPropagation();
             if (loading && !shouldDownload) {
@@ -677,6 +678,7 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
                 alt={fileData.name} 
                 className="w-full h-auto max-w-full max-h-64 object-contain transition-opacity duration-500 ease-in-out z-10 relative pointer-events-none select-none" 
                 referrerPolicy="no-referrer"
+                onLoad={() => setImageLoaded(true)}
               />
             )
           )}

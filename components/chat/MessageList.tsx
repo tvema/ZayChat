@@ -243,7 +243,7 @@ export function MessageList({
         const saved = (chatId && scrollPositionsRef.current) ? scrollPositionsRef.current[chatId] : null;
         
         const restore = () => {
-          if (saved && chatId && chatInitialized.current[chatId]) {
+          if (saved) {
              if (!saved.wasAtBottom && saved.scrollTop !== undefined) {
                container.scrollTop = Math.max(0, saved.scrollTop);
                isAtBottomRef.current = false;
@@ -280,16 +280,10 @@ export function MessageList({
             return;
           }
 
-          if (saved && !saved.wasAtBottom && saved.scrollTop !== undefined) {
-             container.scrollTop = Math.max(0, saved.scrollTop);
-             isAtBottomRef.current = false;
-             setIsAtBottom(false);
-             hasUserScrolledRef.current = true;
-          } else {
-             container.scrollTop = container.scrollHeight;
-             isAtBottomRef.current = true;
-             setIsAtBottom(true);
-          }
+          // If we reach here, there's no saved position and no unread messages. Scroll to bottom.
+          container.scrollTop = container.scrollHeight;
+          isAtBottomRef.current = true;
+          setIsAtBottom(true);
         };
 
         // Restore immediately and synchronously before paint
@@ -559,7 +553,8 @@ export function MessageList({
               ) : (
                 <EmojiPicker 
                   onEmojiClick={(emojiData: any) => {
-                    handleReaction(emojiData.isCustom ? { ...emojiData, emoji: `:${emojiData.id}:` } : emojiData);
+                    const customId = emojiData.names?.[0] || emojiData.unified || emojiData.id;
+                    handleReaction(emojiData.isCustom ? { ...emojiData, emoji: `:${customId}:` } : emojiData);
                     setReactionMessageId(null);
                     setShowFullEmojiPicker(false);
                   }} 

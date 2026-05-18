@@ -471,7 +471,8 @@ export function MessageInput({
           <EmojiPicker 
             onEmojiClick={(emojiData: any) => {
               if (emojiData.isCustom) {
-                setInput(prev => prev + `:${emojiData.id}:`);
+                const customId = emojiData.names?.[0] || emojiData.unified || emojiData.id;
+                setInput(prev => prev + `:${customId}:`);
               } else {
                 setInput(prev => prev + emojiData.emoji);
               }
