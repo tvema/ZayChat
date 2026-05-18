@@ -558,8 +558,8 @@ export function FeedView({
                   </div>
                 )}
                 
-                <div className="flex items-center justify-between mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-700/50">
-                  <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-3 mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-700/50">
+                  <div className="flex flex-wrap items-center gap-2">
                     <button 
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
@@ -596,7 +596,7 @@ export function FeedView({
                   <button 
                     type="submit"
                     disabled={isSubmitting || (!newPostContent.trim() && !newPostMedia)}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-1.5 rounded-full font-medium text-sm disabled:opacity-50 transition-colors"
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-1.5 rounded-full font-medium text-sm disabled:opacity-50 transition-colors whitespace-nowrap shrink-0"
                   >
                     {t('feed.publish')}
                   </button>
@@ -645,7 +645,7 @@ export function FeedView({
                   </div>
                   
                   {post.content && (
-                    <p className="text-neutral-700 dark:text-neutral-300 whitespace-pre-wrap mb-3 text-[15px]">
+                    <p className="text-neutral-700 dark:text-neutral-300 whitespace-pre-wrap mb-3 text-[15px] break-words [word-break:break-word]">
                       {post.content}
                     </p>
                   )}

@@ -428,7 +428,7 @@ export function MessageList({
                 <div className="w-full flex items-center justify-center my-4 relative">
                   <div className="absolute w-full h-px bg-indigo-500/30"></div>
                   <span className="relative bg-white dark:bg-neutral-900 px-4 py-1 rounded-full text-xs font-medium text-indigo-500 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/40 shadow-sm">
-                    {t('chat.newMessages') || 'Новые сообщения'}
+                    {t('modals.newMessages') || 'Новые сообщения'}
                   </span>
                 </div>
               )}

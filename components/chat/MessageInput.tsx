@@ -301,8 +301,18 @@ export function MessageInput({
         }
       }
     };
+    const handleAttachSharedText = (e: CustomEvent) => {
+      if (e.detail && e.detail.text) {
+        setInput(prev => prev ? prev + '\n' + e.detail.text : e.detail.text);
+        if (textareaRef.current) textareaRef.current.focus();
+      }
+    };
     window.addEventListener('attach-shared-file', handleAttachSharedFile as EventListener);
-    return () => window.removeEventListener('attach-shared-file', handleAttachSharedFile as EventListener);
+    window.addEventListener('attach-shared-text', handleAttachSharedText as EventListener);
+    return () => {
+       window.removeEventListener('attach-shared-file', handleAttachSharedFile as EventListener);
+       window.removeEventListener('attach-shared-text', handleAttachSharedText as EventListener);
+    };
   }, []);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {

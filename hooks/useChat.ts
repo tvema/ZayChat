@@ -271,15 +271,38 @@ export function useChat() {
   useEffect(() => { contactCirclesRef.current = contactCircles; }, [contactCircles]);
 
   useEffect(() => {
-    // Check for shared files
+    // Check for shared files or text
     if (typeof window !== 'undefined' && window.location.search.includes('shared=true')) {
+      const searchParams = new URLSearchParams(window.location.search);
+      const text = searchParams.get('text');
+      const title = searchParams.get('title');
+      const urlParam = searchParams.get('url');
+      
+      let initialText = '';
+      if (title) initialText += title + '\n';
+      if (text) initialText += text + '\n';
+      if (urlParam) initialText += urlParam;
+      initialText = initialText.trim();
+      
+      let hasSharedContent = false;
+
+      if (initialText) {
+        if (modals.setSharedText) {
+           modals.setSharedText(initialText);
+        }
+        hasSharedContent = true;
+      }
+
       const checkSharedFiles = async () => {
         try {
           if (typeof window !== 'undefined' && 'indexedDB' in window && window.indexedDB) {
             const request = window.indexedDB.open('shared_files_db', 1);
             request.onsuccess = (e: any) => {
               const db = e.target.result;
-              if (!db.objectStoreNames.contains('files')) return;
+              if (!db.objectStoreNames.contains('files')) {
+                 if (hasSharedContent) modals.setShowShareModal(true);
+                 return;
+              }
               const tx = db.transaction('files', 'readwrite');
               const store = tx.objectStore('files');
               const getAllReq = store.getAll();
@@ -289,16 +312,22 @@ export function useChat() {
                   modals.setShowShareModal(true);
                   // Clear the files after loading
                   store.clear();
+                } else if (hasSharedContent) {
+                  modals.setShowShareModal(true);
                 }
               };
             };
+          } else if (hasSharedContent) {
+            modals.setShowShareModal(true);
           }
         } catch (err) {
           console.error("Failed to read shared files", err);
+          if (hasSharedContent) modals.setShowShareModal(true);
         }
       };
+      
       checkSharedFiles();
-      // Optionally clean up URL
+      // Optionally clean up URL - keep other important params if any
       const newUrl = window.location.pathname;
       window.history.replaceState({}, '', newUrl);
     }

@@ -353,7 +353,7 @@ export function MessageItem({
         id={`message-${msg.id}`}
         initial={isFirstRenderOfChat.current ? false : { opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`flex ${isMine ? 'justify-end' : 'justify-start'} group ${marginTopClass} transition-colors duration-500`}
+        className={`flex ${isMine ? 'justify-end' : 'justify-start'} group ${marginTopClass} w-full min-w-0 transition-colors duration-500`}
       >
         <div className={`flex items-end gap-2 max-w-[calc(100%-1rem)] sm:max-w-[85%] md:max-w-[75%] min-w-0 ${isMine ? 'flex-row-reverse' : 'flex-row'}`}>
           {!isMine && activeGroup && (
@@ -369,7 +369,7 @@ export function MessageItem({
               )}
             </div>
           )}
-          <div className="relative flex items-center gap-2 group/bubble">
+          <div className="relative flex items-center gap-2 group/bubble max-w-full min-w-0">
             {!isSystem && (
               <motion.div 
                 style={{ 
@@ -480,7 +480,7 @@ export function MessageItem({
                       <div className="flex flex-col gap-2">
                         <FileAttachment fileData={parsedContent} senderId={msg.sender_id} socket={socket} encryptionData={msg.encryption_data} activeGroup={activeGroup} messageId={msg.id} />
                         {parsedContent.text && (
-                          <div className="whitespace-pre-wrap break-words text-[15px] leading-relaxed min-w-0">
+                          <div className="whitespace-pre-wrap break-words [word-break:break-word] text-[15px] leading-relaxed min-w-0">
                             {renderMessageText(parsedContent.text)}
                             <span style={{ width: `${spacerWidth}px` }} className="inline-flex shrink-0 h-[14px] align-bottom opacity-0" aria-hidden="true">&#8203;</span>
                           </div>
@@ -499,7 +499,7 @@ export function MessageItem({
                         </div>
                       </div>
                     ) : (
-                      <div className={`whitespace-pre-wrap break-words min-w-0 ${largeEmoji ? 'text-5xl py-2' : 'text-[15px] leading-relaxed'}`}>
+                      <div className={`whitespace-pre-wrap break-words [word-break:break-word] min-w-0 ${largeEmoji ? 'text-5xl py-2' : 'text-[15px] leading-relaxed'}`}>
                         {renderMessageText(msg.content)}
                         <span style={{ width: `${spacerWidth}px` }} className="inline-flex shrink-0 h-[14px] align-bottom opacity-0" aria-hidden="true">&#8203;</span>
                       </div>

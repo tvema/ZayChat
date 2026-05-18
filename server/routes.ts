@@ -1879,8 +1879,16 @@ export function setupRoutes(server: express.Express, io: any, connectedUsers: Ma
   });
 
  // Fallback for Share Target if Service Worker is not active or hasn't intercepted the POST
-  server.post('/share-target', (req, res) => {
-    res.redirect('/?shared=true');
+  server.post('/share-target', upload.any(), (req, res) => {
+    let redirectUrl = '/?shared=true';
+    const params = new URLSearchParams();
+    if (req.body.text) params.append('text', req.body.text);
+    if (req.body.title) params.append('title', req.body.title);
+    if (req.body.url) params.append('url', req.body.url);
+    if (params.toString()) {
+      redirectUrl += '&' + params.toString();
+    }
+    res.redirect(redirectUrl);
   });
 
 }

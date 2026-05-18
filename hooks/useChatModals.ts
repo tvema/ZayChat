@@ -18,6 +18,7 @@ export function useChatModals() {
   const [movingFromCircleId, setMovingFromCircleId] = useState<string | null>(null);
   const [forwardingMessage, setForwardingMessage] = useState<Message | null>(null);
   const [sharedFiles, setSharedFiles] = useState<File[]>([]);
+  const [sharedText, setSharedText] = useState<string>('');
   
   return {
     showInviteModal, setShowInviteModal,
@@ -35,6 +36,7 @@ export function useChatModals() {
     targetContact, setTargetContact,
     movingFromCircleId, setMovingFromCircleId,
     forwardingMessage, setForwardingMessage,
-    sharedFiles, setSharedFiles
+    sharedFiles, setSharedFiles,
+    sharedText, setSharedText
   };
 }

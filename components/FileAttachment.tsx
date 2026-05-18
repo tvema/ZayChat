@@ -591,7 +591,7 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
   }
 
   if (loading) {
-    if ((fileData.mime?.startsWith('image/') || fileData.mime?.startsWith('video/')) && hasDimensions) {
+    if (fileData.mime?.startsWith('image/') || fileData.mime?.startsWith('video/')) {
        return (
          <div 
            className="rounded-xl overflow-hidden border border-neutral-200 bg-neutral-50 relative flex items-center justify-center min-h-[100px] cursor-pointer max-w-full"

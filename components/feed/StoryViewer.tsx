@@ -238,14 +238,14 @@ export function StoryViewer({
               />
             )
           ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center p-8 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-center">
+            <div className="w-full h-full flex flex-col items-center justify-center p-8 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-center break-words [word-break:break-word]">
               <p className="text-white text-2xl font-bold leading-relaxed">{currentPost.content}</p>
             </div>
           )}
 
           {/* If there's text overlaid on image/video */}
           {currentPost.media_url && currentPost.content && (
-            <div className="absolute bottom-16 inset-x-0 p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10 pointer-events-none">
+            <div className="absolute bottom-16 inset-x-0 p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10 pointer-events-none break-words [word-break:break-word]">
               <p className="text-white text-center text-lg">{currentPost.content}</p>
             </div>
           )}

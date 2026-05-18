@@ -520,6 +520,8 @@ export default function ChatApp() {
         setForwardingMessage={chat.setForwardingMessage}
         sharedFiles={chat.sharedFiles}
         setSharedFiles={chat.setSharedFiles}
+        sharedText={chat.sharedText}
+        setSharedText={chat.setSharedText}
         movingContact={chat.movingContact}
         setMovingContact={chat.setMovingContact}
         targetContact={chat.targetContact}

@@ -61,6 +61,8 @@ interface ChatModalsProps {
   setForwardingMessage: (message: Message | null) => void;
   sharedFiles?: File[];
   setSharedFiles?: (files: File[]) => void;
+  sharedText?: string;
+  setSharedText?: (text: string) => void;
   movingContact: User | null;
   setMovingContact: (contact: User | null) => void;
   targetContact: User | null;
@@ -125,6 +127,8 @@ export function ChatModals({
   setForwardingMessage,
   sharedFiles,
   setSharedFiles,
+  sharedText,
+  setSharedText,
   movingContact,
   setMovingContact,
   targetContact,
@@ -266,6 +270,7 @@ export function ChatModals({
         onClose={() => {
           if (setShowShareModal) setShowShareModal(false);
           if (setSharedFiles) setSharedFiles([]);
+          if (setSharedText) setSharedText('');
         }}
         onForward={(recipientId, isGroup) => {
           if (isGroup) {
@@ -285,6 +290,11 @@ export function ChatModals({
              setTimeout(() => {
                window.dispatchEvent(new CustomEvent('attach-shared-file', { detail: { file: sharedFiles[0] } }));
                if (setSharedFiles) setSharedFiles([]);
+             }, 300);
+          } else if (sharedText) {
+             setTimeout(() => {
+               window.dispatchEvent(new CustomEvent('attach-shared-text', { detail: { text: sharedText } }));
+               if (setSharedText) setSharedText('');
              }, 300);
           }
         }}

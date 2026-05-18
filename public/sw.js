@@ -175,17 +175,30 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   if (event.request.method === 'POST' && url.pathname === '/share-target') {
     event.respondWith((async () => {
+      let redirectUrl = '/?shared=true';
       try {
         const formData = await event.request.formData();
         const files = formData.getAll('files');
+        const text = formData.get('text');
+        const title = formData.get('title');
+        const shareUrl = formData.get('url');
         
-        if (files && files.length > 0) {
+        let params = new URLSearchParams();
+        if (text) params.append('text', text.toString());
+        if (title) params.append('title', title.toString());
+        if (shareUrl) params.append('url', shareUrl.toString());
+        
+        if (params.toString()) {
+          redirectUrl += '&' + params.toString();
+        }
+        
+        if (files && files.length > 0 && files[0].size > 0) {
           await saveSharedFiles(files);
         }
       } catch (err) {
         console.error('Error handling share target POST', err);
       }
-      return Response.redirect('/?shared=true', 303);
+      return Response.redirect(redirectUrl, 303);
     })());
   }
 });
