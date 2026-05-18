@@ -604,7 +604,8 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
       appliedStyle = { ...appliedStyle, ...containerStyle };
     } else if (loading) {
       // Conservative default for files without metadata to prevent collapsing
-      appliedStyle = { ...appliedStyle, width: '250px', height: '150px' };
+      // 256px perfectly matches max-h-64 used by the loaded image
+      appliedStyle = { ...appliedStyle, width: '250px', height: '256px' };
     } else {
       appliedStyle = { ...appliedStyle, minWidth: '200px' };
     }
