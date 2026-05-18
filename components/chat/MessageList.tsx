@@ -86,6 +86,8 @@ export function MessageList({
   const [isAtBottom, setIsAtBottom] = useState(true);
   const isAtBottomRef = useRef(isAtBottom);
 
+  // Still keep this for any external state changes if needed, but we will also 
+  // update the ref synchronously in critical paths to avoid race conditions.
   useEffect(() => {
     isAtBottomRef.current = isAtBottom;
   }, [isAtBottom]);
@@ -140,6 +142,7 @@ export function MessageList({
     
     if (behavior === 'auto') {
       container.scrollTop = targetTop;
+      isAtBottomRef.current = true;
       setIsAtBottom(true);
       if (chatId && scrollPositionsRef.current) {
         scrollPositionsRef.current[chatId] = { 
@@ -189,6 +192,7 @@ export function MessageList({
       scrollPositionsRef.current[chatId] = { scrollTop, wasAtBottom: atBottom };
     }
 
+    isAtBottomRef.current = atBottom;
     setIsAtBottom(atBottom);
     
     if (atBottom) {
@@ -200,7 +204,9 @@ export function MessageList({
     if (chatId !== lastSeenChatId.current) {
       lastSeenChatId.current = chatId;
       const saved = (chatId && scrollPositionsRef.current) ? scrollPositionsRef.current[chatId] : null;
-      setIsAtBottom(saved ? saved.wasAtBottom : true);
+      const newIsAtBottom = saved ? saved.wasAtBottom : true;
+      isAtBottomRef.current = newIsAtBottom;
+      setIsAtBottom(newIsAtBottom);
       setHasNewMessages(false);
     }
   }, [chatId]);
@@ -245,6 +251,7 @@ export function MessageList({
               if (chatId && scrollPositionsRef.current) {
                  scrollPositionsRef.current[chatId] = { scrollTop: container.scrollTop, wasAtBottom: false };
               }
+              isAtBottomRef.current = false;
               setIsAtBottom(false);
               return;
             }
@@ -254,15 +261,18 @@ export function MessageList({
             if (chatId && scrollPositionsRef.current) {
                scrollPositionsRef.current[chatId] = { scrollTop: 0, wasAtBottom: false };
             }
+            isAtBottomRef.current = false;
             setIsAtBottom(false);
             return;
           }
 
           if (saved && !saved.wasAtBottom && saved.scrollTop !== undefined) {
              container.scrollTop = Math.max(0, saved.scrollTop);
+             isAtBottomRef.current = false;
              setIsAtBottom(false);
           } else {
              container.scrollTop = container.scrollHeight;
+             isAtBottomRef.current = true;
              setIsAtBottom(true);
           }
         };
