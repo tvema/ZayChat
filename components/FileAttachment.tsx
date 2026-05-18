@@ -590,48 +590,110 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
     );
   }
 
-  if (loading) {
-    if (fileData.mime?.startsWith('image/') || fileData.mime?.startsWith('video/')) {
-       return (
-         <div 
-           className="rounded-xl overflow-hidden border border-neutral-200 bg-neutral-50 relative flex items-center justify-center min-h-[100px] cursor-pointer max-w-full"
-           style={containerStyle || undefined}
-           onClick={fileData.mime?.startsWith('video/') && !shouldDownload ? () => setShouldDownload(true) : undefined}
-         >
-           {fileData.thumbnail && (
-             <Image
-               src={fileData.thumbnail}
-               alt="loading"
-               fill
-               className="object-cover transition-opacity"
-               unoptimized
-             />
-           )}
-           <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/10">
-             {isDecrypting ? (
-               <Lock size={24} className="text-white/90 animate-pulse drop-shadow-md mb-2" />
-             ) : hasError ? (
-               <Download size={24} className="text-red-400 mb-2" />
-             ) : (
-               <div className="flex flex-col items-center justify-center gap-1">
-                 {fileData.mime?.startsWith('video/') && !shouldDownload ? (
-                   <Download size={24} className="text-white/80 drop-shadow-md" />
-                 ) : (
-                   <Download size={24} className="text-white/80 animate-bounce drop-shadow-md" />
-                 )}
-                 {progress > 0 && progress < 100 && (
-                   <span className="text-xs font-bold text-white drop-shadow-md bg-black/30 px-2 py-0.5 rounded-full">{progress}%</span>
-                 )}
-               </div>
-             )}
-             {fileData.mime?.startsWith('video/') && !isDecrypting && !hasError && (
-               <PlayCircle size={32} className="text-white/50 drop-shadow-md mt-1" />
-             )}
-           </div>
-         </div>
-       );
+  const isImage = fileData.mime?.startsWith('image/');
+  const isVideo = fileData.mime?.startsWith('video/');
+
+  if (isImage || isVideo) {
+    let appliedStyle: React.CSSProperties = { 
+      WebkitTouchCallout: 'none', 
+      WebkitUserSelect: 'none', 
+      userSelect: 'none' 
+    };
+    
+    if (hasDimensions && containerStyle) {
+      appliedStyle = { ...appliedStyle, ...containerStyle };
+    } else if (loading) {
+      // Conservative default for files without metadata to prevent collapsing
+      appliedStyle = { ...appliedStyle, width: '250px', height: '150px' };
+    } else {
+      appliedStyle = { ...appliedStyle, minWidth: '200px' };
     }
 
+    return (
+      <>
+        <div 
+          className={`rounded-xl overflow-hidden border border-neutral-200 max-w-full bg-neutral-50 flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity relative min-h-[100px] ${!loading && !hasDimensions ? 'h-auto' : ''}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (loading && !shouldDownload) {
+              setShouldDownload(true);
+            } else if (!loading && isImage) {
+              setIsViewerOpen(true);
+            }
+          }}
+          onContextMenu={(e) => e.preventDefault()}
+          style={appliedStyle}
+        >
+          {fileData.thumbnail && (
+            <Image
+              src={fileData.thumbnail}
+              alt={loading ? "loading" : "placeholder"}
+              fill
+              className={`object-cover absolute inset-0 z-0 pointer-events-none select-none transition-opacity duration-300 ${!loading && isVideo ? 'blur-[2px] opacity-50' : ''}`}
+              unoptimized
+            />
+          )}
+
+          {loading && (
+            <div className={`absolute inset-0 flex flex-col items-center justify-center z-10 transition-opacity duration-300 ${fileData.thumbnail ? 'bg-black/20 backdrop-blur-[1px]' : 'bg-black/5'}`}>
+              {isDecrypting ? (
+                <Lock size={24} className="text-white/90 animate-pulse drop-shadow-md mb-2" />
+              ) : hasError ? (
+                <Download size={24} className="text-red-400 mb-2" />
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-1">
+                  {isVideo && !shouldDownload ? (
+                    <Download size={24} className="text-white/80 drop-shadow-md cursor-pointer" />
+                  ) : (
+                    <Download size={24} className="text-white/80 animate-bounce drop-shadow-md" />
+                  )}
+                  {progress > 0 && progress < 100 && (
+                    <span className="text-xs font-bold text-white drop-shadow-md bg-black/40 px-2 py-0.5 rounded-full">{progress}%</span>
+                  )}
+                </div>
+              )}
+              {isVideo && !isDecrypting && !hasError && (
+                <PlayCircle size={32} className="text-white/60 drop-shadow-md mt-1 cursor-pointer" />
+              )}
+            </div>
+          )}
+
+          {!loading && blobUrl && isImage && (
+            <Image 
+              src={blobUrl} 
+              alt={fileData.name} 
+              width={hasDimensions ? fileData.width : 500}
+              height={hasDimensions ? fileData.height : 300}
+              className="w-full h-auto max-w-full max-h-64 object-contain transition-opacity duration-500 ease-in-out z-10 relative pointer-events-none select-none" 
+              referrerPolicy="no-referrer"
+              unoptimized={fileData.isEncrypted || blobUrl.startsWith('blob:')}
+            />
+          )}
+
+          {!loading && blobUrl && isVideo && (
+            <video 
+              src={blobUrl} 
+              controls 
+              className="w-full h-auto max-w-full max-h-64 object-contain z-10 relative" 
+              style={hasDimensions && containerStyle ? { width: '100%', height: '100%' } : undefined} 
+            />
+          )}
+        </div>
+
+        {isImage && !loading && blobUrl && (
+          <Portal>
+            <AnimatePresence>
+              {isViewerOpen && (
+                <ImageViewer src={blobUrl} alt={fileData.name} onClose={() => setIsViewerOpen(false)} />
+              )}
+            </AnimatePresence>
+          </Portal>
+        )}
+      </>
+    );
+  }
+
+  if (loading) {
     return (
       <div className="flex items-center gap-3 p-3 bg-white/50 rounded-xl border border-neutral-200">
         <div className={`w-10 h-10 rounded-lg bg-neutral-100 flex items-center justify-center ${hasError ? '' : 'animate-pulse'}`}>
@@ -676,73 +738,6 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
             </div>
           )}
         </div>
-      </div>
-    );
-  }
-
-  if (fileData.mime?.startsWith('image/')) {
-    return (
-      <>
-        <div 
-          className="rounded-xl overflow-hidden border border-neutral-200 max-w-full bg-neutral-50 flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity relative min-h-[100px]"
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsViewerOpen(true);
-          }}
-          onContextMenu={(e) => e.preventDefault()}
-          style={hasDimensions ? { ...containerStyle, WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none' } : { WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none' }}
-        >
-          {fileData.thumbnail && (
-            <Image
-              src={fileData.thumbnail}
-              alt="placeholder"
-              fill
-              className="object-cover absolute inset-0 z-0 pointer-events-none select-none"
-              unoptimized
-            />
-          )}
-          <Image 
-            src={blobUrl!} 
-            alt={fileData.name} 
-            width={hasDimensions ? fileData.width : 500}
-            height={hasDimensions ? fileData.height : 300}
-            className="w-full h-auto max-w-full max-h-64 object-contain transition-opacity duration-500 ease-in-out z-10 relative pointer-events-none select-none" 
-            referrerPolicy="no-referrer"
-            unoptimized={fileData.isEncrypted || blobUrl?.startsWith('blob:')}
-          />
-        </div>
-        <Portal>
-          <AnimatePresence>
-            {isViewerOpen && (
-              <ImageViewer src={blobUrl!} alt={fileData.name} onClose={() => setIsViewerOpen(false)} />
-            )}
-          </AnimatePresence>
-        </Portal>
-      </>
-    );
-  }
-
-  if (fileData.mime.startsWith('video/')) {
-    return (
-      <div 
-        className="rounded-xl overflow-hidden border border-neutral-200 justify-center max-w-full bg-neutral-50 flex items-center relative min-h-[100px]"
-        style={hasDimensions ? containerStyle || undefined : undefined}
-      >
-        {fileData.thumbnail && (
-          <Image
-            src={fileData.thumbnail}
-            alt="placeholder"
-            fill
-            className="object-cover blur-sm opacity-30 absolute inset-0 z-0"
-            unoptimized
-          />
-        )}
-        <video 
-          src={blobUrl!} 
-          controls 
-          className="w-full h-auto max-w-full max-h-64 object-contain z-10 relative" 
-          style={hasDimensions ? { ...containerStyle, width: '100%', height: '100%' } : undefined} 
-        />
       </div>
     );
   }
