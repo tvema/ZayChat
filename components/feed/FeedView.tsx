@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, Fragment } from 'react';
 import { Image as ImageIcon, MessageCircle, Heart, Send, X, Video, ArrowLeft, Camera, MoreHorizontal, Download, Share2, Forward, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import { useLanguage } from '@/components/LanguageProvider';
+import { generateImageMetadata, generateVideoMetadata } from '@/lib/chatUtils';
 import { CameraModal } from '../CameraModal';
 import { ImageViewer } from '../ImageViewer';
 import { Portal } from '../Portal';
@@ -18,6 +19,8 @@ interface FeedPost {
   content: string;
   media_url: string;
   media_type: string;
+  media_width?: number;
+  media_height?: number;
   created_at: string;
   username: string;
   first_name: string;
@@ -184,8 +187,19 @@ export function FeedView({
     try {
       let mediaUrl = null;
       let mediaType = null;
+      let mediaWidth = null;
+      let mediaHeight = null;
 
       if (newPostMedia) {
+        let meta: any = {};
+        if (newPostMedia.type.startsWith('image/')) {
+           meta = await generateImageMetadata(newPostMedia);
+        } else if (newPostMedia.type.startsWith('video/')) {
+           meta = await generateVideoMetadata(newPostMedia);
+        }
+        mediaWidth = meta.width || null;
+        mediaHeight = meta.height || null;
+
         const formData = new FormData();
         formData.append('file', newPostMedia);
         const uploadRes = await fetch('/api/upload', {
@@ -210,6 +224,8 @@ export function FeedView({
           content: newPostContent,
           media_url: mediaUrl,
           media_type: mediaType,
+          media_width: mediaWidth,
+          media_height: mediaHeight,
           duration_hours: newPostDuration
         })
       });
@@ -636,20 +652,25 @@ export function FeedView({
                 </div>
                 
                 {post.media_url && (
-                  <div className="relative w-full bg-neutral-100 dark:bg-neutral-900 max-h-[500px] flex items-center justify-center">
+                  <div 
+                    className="relative w-full bg-neutral-100 dark:bg-neutral-900 max-h-[500px] flex items-center justify-center overflow-hidden"
+                    style={post.media_width && post.media_height ? { 
+                      aspectRatio: `${post.media_width}/${post.media_height}`
+                    } : undefined}
+                  >
                     {post.media_type === 'video' ? (
                       <video 
                         src={post.media_url} 
                         controls 
                         playsInline
                         preload="metadata"
-                        className="max-h-[500px] w-full bg-black/5"
+                        className="h-full max-h-[500px] w-full bg-black/5 object-contain"
                       />
                     ) : (
                       <img 
                         src={post.media_url} 
                         alt="Post media" 
-                        className="max-h-[500px] w-full object-contain cursor-pointer"
+                        className="h-full max-h-[500px] w-full object-contain cursor-pointer"
                         onClick={() => {
                           setViewerUrl(post.media_url);
                           setViewerAlt(post.content || 'Post media');

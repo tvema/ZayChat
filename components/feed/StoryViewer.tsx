@@ -9,6 +9,8 @@ interface FeedPost {
   content: string;
   media_url: string;
   media_type: string;
+  media_width?: number;
+  media_height?: number;
   created_at: string;
   username: string;
   first_name: string;

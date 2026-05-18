@@ -512,8 +512,8 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
     }
     
     return { 
-      width: '100%', 
-      maxWidth: w, 
+      width: w, 
+      maxWidth: '100%', 
       height: 'auto', 
       aspectRatio: `${fileData.width}/${fileData.height}` 
     };
@@ -594,7 +594,7 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
     if ((fileData.mime?.startsWith('image/') || fileData.mime?.startsWith('video/')) && hasDimensions) {
        return (
          <div 
-           className="rounded-xl overflow-hidden border border-neutral-200 bg-neutral-50 relative flex items-center justify-center min-h-[100px] cursor-pointer max-w-full w-full"
+           className="rounded-xl overflow-hidden border border-neutral-200 bg-neutral-50 relative flex items-center justify-center min-h-[100px] cursor-pointer max-w-full"
            style={containerStyle || undefined}
            onClick={fileData.mime?.startsWith('video/') && !shouldDownload ? () => setShouldDownload(true) : undefined}
          >
@@ -684,7 +684,7 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
     return (
       <>
         <div 
-          className="rounded-xl overflow-hidden border border-neutral-200 max-w-full w-full bg-neutral-50 flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity relative min-h-[100px]"
+          className="rounded-xl overflow-hidden border border-neutral-200 max-w-full bg-neutral-50 flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity relative min-h-[100px]"
           onClick={(e) => {
             e.stopPropagation();
             setIsViewerOpen(true);
@@ -725,7 +725,7 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
   if (fileData.mime.startsWith('video/')) {
     return (
       <div 
-        className="rounded-xl overflow-hidden border border-neutral-200 justify-center max-w-full w-full bg-neutral-50 flex items-center relative min-h-[100px]"
+        className="rounded-xl overflow-hidden border border-neutral-200 justify-center max-w-full bg-neutral-50 flex items-center relative min-h-[100px]"
         style={hasDimensions ? containerStyle || undefined : undefined}
       >
         {fileData.thumbnail && (

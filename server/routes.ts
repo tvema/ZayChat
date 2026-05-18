@@ -1776,16 +1776,16 @@ export function setupRoutes(server: express.Express, io: any, connectedUsers: Ma
 
   server.post('/api/feed', authenticateToken, (req: any, res) => {
     try {
-      const { content, media_url, media_type, duration_hours = 24 } = req.body;
+      const { content, media_url, media_type, media_width, media_height, duration_hours = 24 } = req.body;
       const id = uuidv4();
       
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + Number(duration_hours));
 
       db.prepare(`
-        INSERT INTO feed_posts (id, user_id, content, media_url, media_type, expires_at)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `).run(id, req.user.userId, content || '', media_url || null, media_type || null, expiresAt.toISOString());
+        INSERT INTO feed_posts (id, user_id, content, media_url, media_type, media_width, media_height, expires_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(id, req.user.userId, content || '', media_url || null, media_type || null, media_width || null, media_height || null, expiresAt.toISOString());
       
       const post = db.prepare(`
         SELECT p.*, u.username, u.first_name, u.last_name, u.avatar_url,

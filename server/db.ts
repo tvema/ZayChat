@@ -165,6 +165,8 @@ db.exec(`
     content TEXT,
     media_url TEXT,
     media_type TEXT,
+    media_width INTEGER,
+    media_height INTEGER,
     expires_at DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
@@ -339,6 +341,8 @@ const expectedSchema: Record<string, Record<string, string>> = {
     content: 'TEXT',
     media_url: 'TEXT',
     media_type: 'TEXT',
+    media_width: 'INTEGER',
+    media_height: 'INTEGER',
     expires_at: 'DATETIME',
     created_at: 'DATETIME DEFAULT CURRENT_TIMESTAMP'
   },
