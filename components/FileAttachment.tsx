@@ -660,15 +660,25 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
           )}
 
           {!loading && blobUrl && isImage && (
-            <Image 
-              src={blobUrl} 
-              alt={fileData.name} 
-              width={hasDimensions ? fileData.width : 500}
-              height={hasDimensions ? fileData.height : 300}
-              className="w-full h-auto max-w-full max-h-64 object-contain transition-opacity duration-500 ease-in-out z-10 relative pointer-events-none select-none" 
-              referrerPolicy="no-referrer"
-              unoptimized={fileData.isEncrypted || blobUrl.startsWith('blob:')}
-            />
+            hasDimensions ? (
+              <Image 
+                src={blobUrl} 
+                alt={fileData.name} 
+                width={fileData.width!}
+                height={fileData.height!}
+                className="w-full h-auto max-w-full max-h-64 object-contain transition-opacity duration-500 ease-in-out z-10 relative pointer-events-none select-none" 
+                referrerPolicy="no-referrer"
+                unoptimized={fileData.isEncrypted || blobUrl.startsWith('blob:')}
+              />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={blobUrl} 
+                alt={fileData.name} 
+                className="w-full h-auto max-w-full max-h-64 object-contain transition-opacity duration-500 ease-in-out z-10 relative pointer-events-none select-none" 
+                referrerPolicy="no-referrer"
+              />
+            )
           )}
 
           {!loading && blobUrl && isVideo && (

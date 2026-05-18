@@ -243,6 +243,20 @@ export function MessageList({
         const saved = (chatId && scrollPositionsRef.current) ? scrollPositionsRef.current[chatId] : null;
         
         const restore = () => {
+          if (saved && chatId && chatInitialized.current[chatId]) {
+             if (!saved.wasAtBottom && saved.scrollTop !== undefined) {
+               container.scrollTop = Math.max(0, saved.scrollTop);
+               isAtBottomRef.current = false;
+               setIsAtBottom(false);
+               hasUserScrolledRef.current = true; // User previously scrolled away from bottom/unread
+             } else {
+               container.scrollTop = container.scrollHeight;
+               isAtBottomRef.current = true;
+               setIsAtBottom(true);
+             }
+             return;
+          }
+
           if (firstUnreadMessageIdRef.current) {
             const el = document.getElementById(`message-${firstUnreadMessageIdRef.current}`);
             if (el && container) {
@@ -270,6 +284,7 @@ export function MessageList({
              container.scrollTop = Math.max(0, saved.scrollTop);
              isAtBottomRef.current = false;
              setIsAtBottom(false);
+             hasUserScrolledRef.current = true;
           } else {
              container.scrollTop = container.scrollHeight;
              isAtBottomRef.current = true;
