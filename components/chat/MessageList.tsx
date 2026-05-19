@@ -413,16 +413,18 @@ export function MessageList({
 
   return (
     <div className="flex-1 relative flex flex-col min-h-0" onClick={() => setSelectedMessageId(null)}>
+      {isLoadingMore && (
+        <div className="absolute top-4 left-0 w-full flex justify-center z-10 pointer-events-none">
+          <div className="bg-white/80 dark:bg-neutral-800/80 p-1.5 rounded-full shadow-sm backdrop-blur-sm">
+            <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        </div>
+      )}
       <div 
         ref={scrollContainerRef}
         onScroll={handleScroll}
         className="flex-1 overflow-y-auto no-scrollbar p-4 md:p-6"
       >
-        {isLoadingMore && (
-          <div className="flex justify-center py-2">
-            <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        )}
         <div ref={contentRef} className="flex flex-col">
         {filteredMessages.map((msg, index) => {
           const prevMsg = index > 0 ? filteredMessages[index - 1] : null;

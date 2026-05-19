@@ -155,7 +155,7 @@ export function SharedMediaRenderer({ messages, activeTab, socket = null, active
   if (activeTab === 'media') {
     return (
       <div 
-        className="grid grid-cols-3 gap-[2px] overflow-y-auto h-full scrollbar-thin scrollbar-thumb-neutral-200 dark:scrollbar-thumb-neutral-800"
+        className="grid grid-cols-3 gap-[2px] overflow-y-auto h-full scrollbar-thin scrollbar-thumb-neutral-200 dark:scrollbar-thumb-neutral-800 content-start"
         onScroll={handleScroll}
       >
         {items.map((item, idx) => {
