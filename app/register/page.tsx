@@ -11,6 +11,8 @@ import { useTheme } from 'next-themes';
 import { useLanguage } from '@/components/LanguageProvider';
 import { generateRSAKeyPair, exportKey, encryptPrivateKeyWithPassword } from '@/lib/crypto';
 
+export const dynamic = 'force-dynamic';
+
 export default function Register() {
   const [step, setStep] = useState(1);
   const [inviteCode, setInviteCode] = useState('');

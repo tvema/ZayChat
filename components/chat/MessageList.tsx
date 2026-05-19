@@ -147,6 +147,7 @@ export function MessageList({
       if (chatId && scrollPositionsRef.current) {
         scrollPositionsRef.current[chatId] = { 
           scrollTop: targetTop,
+          distanceFromBottom: container.scrollHeight - targetTop,
           wasAtBottom: true 
         };
       }
@@ -187,9 +188,13 @@ export function MessageList({
     const isScrollable = scrollHeight > clientHeight;
     const atBottom = !isScrollable || (scrollHeight - scrollTop - clientHeight < 50);
     
-    // Save current scroll position and bottom state
+    // Save current scroll position, state, and distanceFromBottom
     if (chatId && scrollPositionsRef.current) {
-      scrollPositionsRef.current[chatId] = { scrollTop, wasAtBottom: atBottom };
+      scrollPositionsRef.current[chatId] = { 
+        scrollTop, 
+        distanceFromBottom: scrollHeight - scrollTop,
+        wasAtBottom: atBottom 
+      };
     }
 
     isAtBottomRef.current = atBottom;
@@ -244,8 +249,12 @@ export function MessageList({
         
         const restore = () => {
           if (saved) {
-             if (!saved.wasAtBottom && saved.scrollTop !== undefined) {
-               container.scrollTop = Math.max(0, saved.scrollTop);
+             if (!saved.wasAtBottom) {
+               if (saved.distanceFromBottom !== undefined) {
+                 container.scrollTop = Math.max(0, container.scrollHeight - saved.distanceFromBottom);
+               } else if (saved.scrollTop !== undefined) {
+                 container.scrollTop = Math.max(0, saved.scrollTop);
+               }
                isAtBottomRef.current = false;
                setIsAtBottom(false);
                hasUserScrolledRef.current = true; // User previously scrolled away from bottom/unread
@@ -263,7 +272,11 @@ export function MessageList({
               // Scroll to the unread message with a small top padding
               container.scrollTop = Math.max(0, el.offsetTop - 60);
               if (chatId && scrollPositionsRef.current) {
-                 scrollPositionsRef.current[chatId] = { scrollTop: container.scrollTop, wasAtBottom: false };
+                 scrollPositionsRef.current[chatId] = { 
+                   scrollTop: container.scrollTop, 
+                   distanceFromBottom: container.scrollHeight - container.scrollTop,
+                   wasAtBottom: false 
+                 };
               }
               isAtBottomRef.current = false;
               setIsAtBottom(false);
@@ -273,7 +286,11 @@ export function MessageList({
             // We haven't found the unread boundary yet and are still loading. Stay near top.
             container.scrollTop = 0;
             if (chatId && scrollPositionsRef.current) {
-               scrollPositionsRef.current[chatId] = { scrollTop: 0, wasAtBottom: false };
+               scrollPositionsRef.current[chatId] = { 
+                 scrollTop: 0, 
+                 distanceFromBottom: container.scrollHeight,
+                 wasAtBottom: false 
+               };
             }
             isAtBottomRef.current = false;
             setIsAtBottom(false);
@@ -374,6 +391,7 @@ export function MessageList({
           
           if (chatId && scrollPositionsRef.current && scrollPositionsRef.current[chatId]) {
             scrollPositionsRef.current[chatId].scrollTop = container.scrollTop;
+            scrollPositionsRef.current[chatId].distanceFromBottom = container.scrollHeight - container.scrollTop;
           }
           
           setTimeout(() => {
