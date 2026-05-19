@@ -15,7 +15,7 @@ import type { Socket } from 'socket.io-client';
 import { useTheme } from 'next-themes';
 import { useLanguage } from '../LanguageProvider';
 import { CameraModal } from '../CameraModal';
-import { CUSTOM_EMOJIS } from '@/lib/chatComponents';
+import { CUSTOM_EMOJIS, CustomEmojiPreloader } from '@/lib/chatComponents';
 
 interface MessageInputProps {
   handleSendMessage: (content: string, file?: File, sendAsOriginal?: boolean, forceUnencrypted?: boolean) => Promise<void> | void;
@@ -545,6 +545,7 @@ export function MessageInput({
 
   return (
     <footer className="p-4 bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-800 shrink-0 relative">
+      <CustomEmojiPreloader />
       {showEmojiPicker && (
         <div className="absolute bottom-full left-4 mb-2 z-50 shadow-2xl rounded-2xl overflow-hidden border border-neutral-100 dark:border-neutral-800 max-w-[calc(100vw-32px)]">
           <EmojiPicker 

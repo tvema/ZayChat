@@ -26,6 +26,17 @@ export const CUSTOM_EMOJIS = [
   "эврика"
 ];
 
+export const CustomEmojiPreloader = () => {
+  return (
+    <div style={{ display: 'none' }} aria-hidden="true">
+      {CUSTOM_EMOJIS.map(name => (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img key={name} src={`/эмодзи зайчат/${name}.png`} alt={name} loading="eager" />
+      ))}
+    </div>
+  );
+};
+
 export const renderMessageText = (text: string, largeEmoji?: boolean) => {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const parts = text.split(urlRegex);
