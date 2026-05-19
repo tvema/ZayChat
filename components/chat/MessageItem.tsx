@@ -217,7 +217,7 @@ export function MessageItem({
 
   const trimmedContent = msg.content.trim();
   const isJson = trimmedContent.startsWith('{') && trimmedContent.endsWith('}');
-  let parsedContent = null;
+  let parsedContent: any = null;
   if (isJson) {
     try {
       parsedContent = JSON.parse(trimmedContent);
@@ -226,6 +226,16 @@ export function MessageItem({
       }
     } catch (e) {}
   }
+
+  useEffect(() => {
+    if (parsedContent && (parsedContent.type === 'file' || parsedContent.url || parsedContent.fileId)) {
+      if ((msg as any).is_media !== 1 && socket) {
+        // Auto-migrate old encrypted media messages when they render in chat
+        socket.emit('message:mark_media', { messageId: msg.id });
+        (msg as any).is_media = 1;
+      }
+    }
+  }, [parsedContent, socket, msg]);
 
   let spacerWidth = 55;
   if (msg.is_edited) spacerWidth += 35;

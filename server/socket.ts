@@ -114,6 +114,12 @@ export function setupSocket(io: SocketIOServer, connectedUsers: Map<string, Set<
       console.error('Error marking pending messages as delivered', e);
     }
 
+    socket.on('message:mark_media', (data: { messageId: string }) => {
+      try {
+        db.prepare('UPDATE messages SET is_media = 1 WHERE id = ?').run(data.messageId);
+      } catch (err) { }
+    });
+
     socket.on('message:send', (data) => {
       const { receiverId, groupId, content, replyTo, forwardedFrom, encryptionData, isMedia } = data;
       const messageId = uuidv4();

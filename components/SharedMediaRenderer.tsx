@@ -77,8 +77,16 @@ export function SharedMediaRenderer({ messages, activeTab, socket = null, active
     const map = new Map<string, Message>();
     fetchedMessages.forEach(m => map.set(m.id, m));
     messages.forEach(m => {
+      let isActuallyMedia = false;
       if (m.content.includes('"type":"file"') || m.content.includes('"type":"link"') || m.content.includes('http')) {
         map.set(m.id, m);
+        isActuallyMedia = true;
+      }
+      
+      // Auto-migrate old encrypted media messages
+      if (isActuallyMedia && (m as any).is_media !== 1 && socket) {
+        socket.emit('message:mark_media', { messageId: m.id });
+        (m as any).is_media = 1; // prevent re-emitting
       }
     });
     return Array.from(map.values()).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
