@@ -190,11 +190,24 @@ export function MessageList({
     
     // Save current scroll position, state, and distanceFromBottom
     if (chatId && scrollPositionsRef.current) {
-      scrollPositionsRef.current[chatId] = { 
-        scrollTop, 
-        distanceFromBottom: scrollHeight - scrollTop,
-        wasAtBottom: atBottom 
-      };
+      const saved = scrollPositionsRef.current[chatId];
+      const newDistance = scrollHeight - scrollTop;
+      
+      // If we are actively seeking a saved distance that is larger than the current available height,
+      // and we remain near the top, do not overwrite the target distance with the truncated one.
+      if (saved && saved.distanceFromBottom !== undefined && saved.distanceFromBottom > scrollHeight && scrollTop < 50) {
+        scrollPositionsRef.current[chatId] = { 
+          scrollTop, 
+          distanceFromBottom: saved.distanceFromBottom,
+          wasAtBottom: atBottom 
+        };
+      } else {
+        scrollPositionsRef.current[chatId] = { 
+          scrollTop, 
+          distanceFromBottom: newDistance,
+          wasAtBottom: atBottom 
+        };
+      }
     }
 
     isAtBottomRef.current = atBottom;
@@ -356,7 +369,7 @@ export function MessageList({
           let saved = null;
           if (chatId && scrollPositionsRef.current) {
             saved = scrollPositionsRef.current[chatId];
-            if (!hasUserScrolledRef.current && saved && saved.distanceFromBottom !== undefined) {
+            if (saved && saved.distanceFromBottom !== undefined && !saved.wasAtBottom) {
                newScrollTop = Math.max(0, container.scrollHeight - saved.distanceFromBottom);
             }
           }
@@ -396,7 +409,7 @@ export function MessageList({
     }
     prevMessagesLength.current = filteredMessages.length;
     prevMessagesRef.current = filteredMessages;
-  }, [chatId, filteredMessages, isAtBottom, scrollToBottom, user.id, isLoadingMore]);
+  }, [chatId, filteredMessages, isAtBottom, scrollToBottom, user.id, isLoadingMore, hasMoreMessages, loadMoreMessages]);
 
   // Handle content height changes (like image loads)
   useEffect(() => {
