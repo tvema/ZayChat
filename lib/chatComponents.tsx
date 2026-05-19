@@ -28,12 +28,11 @@ export const CUSTOM_EMOJIS = [
 
 export const CustomEmojiPreloader = () => {
   return (
-    <div style={{ display: 'none' }} aria-hidden="true">
+    <>
       {CUSTOM_EMOJIS.map(name => (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img key={name} src={`/эмодзи зайчат/${name}.png`} alt={name} loading="eager" />
+        <link key={name} rel="preload" as="image" href={`/эмодзи зайчат/${name}.png`} fetchPriority="high" />
       ))}
-    </div>
+    </>
   );
 };
 

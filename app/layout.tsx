@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import { GlobalModalProvider } from "@/components/GlobalModalProvider";
 import { ClientErrorCatcher } from "./ClientErrorCatcher";
+import { CustomEmojiPreloader } from "@/lib/chatComponents";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -51,6 +52,7 @@ export default function RootLayout({
   return (
     <html lang="ru" className={`${inter.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
       <body className="font-sans antialiased overflow-hidden">
+        <CustomEmojiPreloader />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

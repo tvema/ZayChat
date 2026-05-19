@@ -12,11 +12,9 @@
   }
 }
 
-/* Enlarge custom image-based emojis in the picker */
-.epr-emoji-img {
-  width: 44px !important;
-  height: 44px !important;
-  max-width: none !important;
-  max-height: none !important;
-  object-fit: contain;
+/* Enlarge custom image-based emojis in the picker without breaking the grid */
+.epr-emoji-img[src*="зайчат"] {
+  padding: 0 !important;
+  transform: scale(1.25);
+  transform-origin: center;
 }
