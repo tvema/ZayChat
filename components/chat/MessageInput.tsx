@@ -97,12 +97,33 @@ export function MessageInput({
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isSubmittingFeed, setIsSubmittingFeed] = useState(false);
 
+  const targetId = activeGroup?.id || activeContact?.id || 'default';
+  const draftsRef = useRef<Record<string, { input: string, htmlContent: string, pendingFile: File | null, previewUrl: string | null }>>({});
+  const prevTargetIdRef = useRef<string>(targetId);
+  const currentStateRef = useRef({ input, htmlContent, pendingFile, previewUrl });
+  currentStateRef.current = { input, htmlContent, pendingFile, previewUrl };
+
   useEffect(() => {
-    setInput('');
-    setHtmlContent('');
-    setPendingFile(null);
-    setPreviewUrl(null);
-  }, [activeContact?.id, activeGroup?.id]);
+    if (prevTargetIdRef.current !== targetId) {
+      const prevId = prevTargetIdRef.current;
+      draftsRef.current[prevId] = currentStateRef.current;
+      
+      const draft = draftsRef.current[targetId];
+      if (draft) {
+        setInput(draft.input);
+        setHtmlContent(draft.htmlContent);
+        setPendingFile(draft.pendingFile);
+        setPreviewUrl(draft.previewUrl);
+      } else {
+        setInput('');
+        setHtmlContent('');
+        setPendingFile(null);
+        setPreviewUrl(null);
+      }
+      
+      prevTargetIdRef.current = targetId;
+    }
+  }, [targetId]);
 
   useEffect(() => {
     const handleProgress = (e: any) => {
