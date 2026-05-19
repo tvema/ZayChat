@@ -144,7 +144,8 @@ export function useChatActions(token: string | null, activeContact: User | null,
             receiverId: activeContact?.id || null,
             groupId: activeGroup?.id || null,
             content: JSON.stringify(metadata),
-            replyTo: replyingTo?.id
+            replyTo: replyingTo?.id,
+            isMedia: true
           });
           
           playMessageSound(false);
@@ -287,7 +288,8 @@ export function useChatActions(token: string | null, activeContact: User | null,
           groupId: activeGroup?.id || null,
           content: encryptedTextBase64,
           replyTo: replyingTo?.id,
-          encryptionData
+          encryptionData,
+          isMedia: !!file
         });
 
         playMessageSound(false);
@@ -425,7 +427,8 @@ export function useChatActions(token: string | null, activeContact: User | null,
           groupId: isGroup ? recipientId : null,
           content: encryptedTextBase64,
           forwardedFrom: forwardingMessage.sender_id,
-          encryptionData
+          encryptionData,
+          isMedia: forwardingMessage.content.includes('"type":"file"') || forwardingMessage.content.includes('{"type":"file"')
         });
       } else {
         // Plaintext forward (e.g. if target doesn't support E2EE yet)
@@ -433,7 +436,8 @@ export function useChatActions(token: string | null, activeContact: User | null,
           receiverId: isGroup ? null : recipientId,
           groupId: isGroup ? recipientId : null,
           content: contentToForward,
-          forwardedFrom: forwardingMessage.sender_id
+          forwardedFrom: forwardingMessage.sender_id,
+          isMedia: forwardingMessage.content.includes('"type":"file"') || forwardingMessage.content.includes('{"type":"file"')
         });
       }
 

@@ -1327,7 +1327,7 @@ export function setupRoutes(server: express.Express, io: any, connectedUsers: Ma
           SELECT m.*
           FROM messages m
           WHERE m.group_id = ? 
-          AND (m.content LIKE '%"type":"file"%' OR m.content LIKE '%"type":"link"%' OR m.content LIKE '%http%')
+          AND (m.content LIKE '%"type":"file"%' OR m.content LIKE '%"type":"link"%' OR m.content LIKE '%http%' OR m.is_media = 1)
         `;
         const params: any[] = [contactId];
         
@@ -1346,7 +1346,7 @@ export function setupRoutes(server: express.Express, io: any, connectedUsers: Ma
           FROM messages m
           WHERE ((m.sender_id = ? AND m.receiver_id = ?)
              OR (m.sender_id = ? AND m.receiver_id = ?))
-          AND (m.content LIKE '%"type":"file"%' OR m.content LIKE '%"type":"link"%' OR m.content LIKE '%http%')
+          AND (m.content LIKE '%"type":"file"%' OR m.content LIKE '%"type":"link"%' OR m.content LIKE '%http%' OR m.is_media = 1)
         `;
         const params: any[] = [req.user.userId, contactId, contactId, req.user.userId];
         

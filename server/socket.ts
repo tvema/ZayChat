@@ -115,7 +115,7 @@ export function setupSocket(io: SocketIOServer, connectedUsers: Map<string, Set<
     }
 
     socket.on('message:send', (data) => {
-      const { receiverId, groupId, content, replyTo, forwardedFrom, encryptionData } = data;
+      const { receiverId, groupId, content, replyTo, forwardedFrom, encryptionData, isMedia } = data;
       const messageId = uuidv4();
       
       try {
@@ -137,8 +137,8 @@ export function setupSocket(io: SocketIOServer, connectedUsers: Map<string, Set<
           return; // Do not insert message
         }
 
-        db.prepare('INSERT INTO messages (id, sender_id, receiver_id, group_id, content, reply_to, forwarded_from, encryption_data) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(
-          messageId, userId, receiverId || null, groupId || null, content, replyTo || null, forwardedFrom || null, encryptionData ? JSON.stringify(encryptionData) : null
+        db.prepare('INSERT INTO messages (id, sender_id, receiver_id, group_id, content, reply_to, forwarded_from, encryption_data, is_media) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').run(
+          messageId, userId, receiverId || null, groupId || null, content, replyTo || null, forwardedFrom || null, encryptionData ? JSON.stringify(encryptionData) : null, isMedia ? 1 : 0
         );
 
         const sender = db.prepare('SELECT username FROM users WHERE id = ?').get(userId) as any;

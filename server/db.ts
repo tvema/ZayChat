@@ -61,6 +61,7 @@ db.exec(`
     forwarded_from TEXT,
     encryption_data TEXT,
     is_edited BOOLEAN DEFAULT 0,
+    is_media BOOLEAN DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
@@ -258,6 +259,7 @@ const expectedSchema: Record<string, Record<string, string>> = {
     encryption_data: 'TEXT',
     is_edited: 'BOOLEAN DEFAULT 0',
     is_deleted: 'BOOLEAN DEFAULT 0',
+    is_media: 'BOOLEAN DEFAULT 0',
     created_at: 'DATETIME DEFAULT CURRENT_TIMESTAMP'
   },
   groups: {

@@ -6,6 +6,7 @@ import { FileIcon, LinkIcon, Headphones, Image as ImageIcon, Download, Loader2 }
 import { useLanguage } from '@/components/LanguageProvider';
 import { FileAttachment } from '@/components/FileAttachment';
 import type { Socket } from 'socket.io-client';
+import { decryptMessageIfNeeded } from '@/lib/cryptoUtils';
 
 interface SharedMediaRendererProps {
   messages: Message[];
@@ -14,9 +15,11 @@ interface SharedMediaRendererProps {
   activeGroup?: Group | null;
   activeContact?: User | null;
   token?: string;
+  currentUser?: User | null;
+  groups?: Group[];
 }
 
-export function SharedMediaRenderer({ messages, activeTab, socket = null, activeGroup, activeContact, token }: SharedMediaRendererProps) {
+export function SharedMediaRenderer({ messages, activeTab, socket = null, activeGroup, activeContact, token, currentUser, groups = [] }: SharedMediaRendererProps) {
   const { t } = useLanguage();
   const [fetchedMessages, setFetchedMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -40,14 +43,22 @@ export function SharedMediaRenderer({ messages, activeTab, socket = null, active
         if (data.length < 50) {
           setHasMore(false);
         }
-        setFetchedMessages(prev => isLoadMore ? [...prev, ...data] : data);
+        
+        let targetGroups = groups;
+        if (activeGroup && !targetGroups.find(g => g.id === activeGroup.id)) {
+           targetGroups = [...targetGroups, activeGroup];
+        }
+
+        const decryptedData = await Promise.all(data.map((msg: Message) => decryptMessageIfNeeded(msg, currentUser?.id, targetGroups)));
+        
+        setFetchedMessages(prev => isLoadMore ? [...prev, ...decryptedData] : decryptedData);
       }
     } catch (e) {
       console.error('Failed to fetch media messages', e);
     } finally {
       setIsLoading(false);
     }
-  }, [activeGroup?.id, activeContact?.id, token, fetchedMessages]);
+  }, [activeGroup?.id, activeContact?.id, token, fetchedMessages, currentUser?.id, groups, activeGroup]);
 
   useEffect(() => {
     setFetchedMessages([]);
