@@ -310,6 +310,12 @@ export function MessageList({
         const doubleCheck = setTimeout(() => {
           if (container && chatId === currentChatId.current) {
             restore();
+            // Check if we ended up at the top and need to load more.
+            // This happens when returning to a chat where the saved scroll position
+            // is higher than the initially loaded message buffer.
+            if (container.scrollTop < 100 && hasMoreMessages && !isLoadingMore && loadMoreMessages) {
+              loadMoreMessages();
+            }
           }
           isRestoring.current = false;
           // Keep isFirstRenderOfChat true for a bit longer to ensure no animations during initial load
@@ -343,12 +349,34 @@ export function MessageList({
       if (!isNewMessageAtBottom) {
         // Messages were added at the top (pagination)
         if (container) {
+          isRestoring.current = true;
           const scrollHeightDiff = container.scrollHeight - lastScrollTop.current;
-          container.scrollTop += scrollHeightDiff;
+          let newScrollTop = container.scrollTop + scrollHeightDiff;
           
-          if (chatId && scrollPositionsRef.current && scrollPositionsRef.current[chatId]) {
-             scrollPositionsRef.current[chatId].scrollTop = container.scrollTop;
+          let saved = null;
+          if (chatId && scrollPositionsRef.current) {
+            saved = scrollPositionsRef.current[chatId];
+            if (!hasUserScrolledRef.current && saved && saved.distanceFromBottom !== undefined) {
+               newScrollTop = Math.max(0, container.scrollHeight - saved.distanceFromBottom);
+            }
           }
+          
+          container.scrollTop = newScrollTop;
+          
+          if (saved) {
+             saved.scrollTop = newScrollTop;
+          }
+          
+          if (newScrollTop < 100 && hasMoreMessages && !isLoadingMore && loadMoreMessages) {
+            // Keep loading until we have enough height to fulfill the distanceFromBottom
+            setTimeout(() => {
+               loadMoreMessages();
+            }, 50);
+          }
+          
+          setTimeout(() => {
+             isRestoring.current = false;
+          }, 30);
         }
       } else {
         // New message at the bottom
