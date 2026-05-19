@@ -12,9 +12,18 @@
   }
 }
 
-/* Enlarge custom image-based emojis in the picker without breaking the grid */
-.epr-emoji-img[src*="зайчат"] {
-  padding: 0 !important;
-  transform: scale(1.25);
+/* Make Custom Emojis hares larger without breaking the grid */
+.epr-emoji-category[data-name="custom"] {
+  --epr-emoji-size: 50px !important;
+  --epr-emoji-padding: 0px !important;
+  --epr-emoji-fullsize: 50px !important;
+}
+.epr-emoji-category[data-name="custom"] .epr-emoji-category-content {
+  height: auto !important;
+  gap: 6px;
+  padding: 6px 0;
+}
+.epr-emoji-category[data-name="custom"] .epr-emoji-img {
+  transform: scale(1.2);
   transform-origin: center;
 }
