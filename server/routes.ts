@@ -1244,8 +1244,9 @@ export function setupRoutes(server: express.Express, io: any, connectedUsers: Ma
     try {
       const { contactId } = req.params;
       const isGroup = req.query.isGroup === 'true';
-      const limit = parseInt(req.query.limit as string) || 30;
       const before = req.query.before as string;
+      const after = req.query.after as string;
+      const limit = after ? 1000 : (parseInt(req.query.limit as string) || 30);
       
       let messages;
       if (isGroup) {
@@ -1265,6 +1266,11 @@ export function setupRoutes(server: express.Express, io: any, connectedUsers: Ma
         if (before) {
           query += ` AND m.created_at < ?`;
           params.push(before);
+        }
+        
+        if (after) {
+          query += ` AND m.created_at > ?`;
+          params.push(after);
         }
         
         query += ` ORDER BY m.created_at DESC LIMIT ?`;
@@ -1293,6 +1299,11 @@ export function setupRoutes(server: express.Express, io: any, connectedUsers: Ma
         if (before) {
           query += ` AND m.created_at < ?`;
           params.push(before);
+        }
+        
+        if (after) {
+          query += ` AND m.created_at > ?`;
+          params.push(after);
         }
         
         query += ` ORDER BY m.created_at DESC LIMIT ?`;

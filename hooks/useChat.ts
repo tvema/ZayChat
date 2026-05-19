@@ -620,96 +620,100 @@ export function useChat() {
     setHasMoreMessages(true);
     setIsLoadingMore(true);
     
-    // Check cache first for instant render
-    if (id) {
-      getCachedMessages(id).then(cached => {
+    const controller = new AbortController();
+
+    const asyncFetch = async () => {
+      let cached: Message[] | null = null;
+      let afterParam = '';
+      
+      if (id) {
+        cached = await getCachedMessages(id);
         if (cached && cached.length > 0) {
           // Verify we are still looking at the same chat to avoid race conditions
           const currentId = activeContactIdRef.current || activeGroupIdRef.current;
-          if (currentId !== id) return;
-          
-          setMessages(prev => {
-            if (prev.length === 0) {
-              return cached;
-            }
-            return prev;
-          });
-        }
-      });
-    }
-    
-    const controller = new AbortController();
-    
-    const unreadCount = isGroup ? (activeGroup?.unread_count || 0) : (activeContact?.unread_count || 0);
-    const limit = Math.min(100, Math.max(30, unreadCount + 10));
-    
-    fetch(`/api/messages/${id}?isGroup=${isGroup}&limit=${limit}`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-      signal: controller.signal
-    })
-    .then(async res => {
-      if (res.ok) {
-        const text = await res.text();
-        const rawData = text ? JSON.parse(text) : [];
-        if (rawData.length < limit) {
-          setHasMoreMessages(false);
-        }
-        
-        const decryptedBatch = await Promise.all(rawData.map((msg: Message) => decryptMessageIfNeeded(msg, userRef.current?.id, groupsRef.current)));
-        
-        if (id) {
-          fetchPinnedMessages(id);
-          
-          setMessages(prev => {
-            // Verify we are still in the same chat
-            const currentId = activeContactIdRef.current || activeGroupIdRef.current;
-            if (currentId !== id) return prev;
-            
-            const allMap = new Map<string, Message>();
-            prev.forEach(m => allMap.set(m.id, m));
-            decryptedBatch.forEach(m => allMap.set(m.id, m)); // Fresh API data overwrites cache
-            
-            const merged = Array.from(allMap.values()).sort((a, b) => {
-              const timeA = new Date(a.created_at.includes('T') ? a.created_at : a.created_at.replace(' ', 'T') + 'Z').getTime();
-              const timeB = new Date(b.created_at.includes('T') ? b.created_at : b.created_at.replace(' ', 'T') + 'Z').getTime();
-              return timeA - timeB;
+          if (currentId === id) {
+            setMessages(prev => {
+              if (prev.length === 0) return cached!;
+              return prev;
             });
-            setCachedMessages(id, merged);
-            return merged;
-          });
+            const latestCachedMessage = cached[cached.length - 1];
+            afterParam = `&after=${encodeURIComponent(latestCachedMessage.created_at)}`;
+          }
         }
+      }
+      
+      const unreadCount = isGroup ? (activeGroup?.unread_count || 0) : (activeContact?.unread_count || 0);
+      const limit = Math.min(100, Math.max(30, unreadCount + 10));
+      const fetchUrl = afterParam 
+        ? `/api/messages/${id}?isGroup=${isGroup}${afterParam}`
+        : `/api/messages/${id}?isGroup=${isGroup}&limit=${limit}`;
         
-        setIsLoadingMore(false);
-        return rawData;
-      }
-      return null;
-    })
-    .then(rawData => {
-      if (!rawData) {
-        setIsLoadingMore(false);
-        return;
-      }
-
-      if (!isGroup && activeContact) {
-        if (socket) {
-          // Tell server to mark all messages from this contact as read
-          socket.emit('contact:read', { contactId: activeContact.id });
+      try {
+        const res = await fetch(fetchUrl, {
+          headers: { 'Authorization': `Bearer ${token}` },
+          signal: controller.signal
+        });
+        
+        if (res.ok) {
+          const text = await res.text();
+          const rawData = text ? JSON.parse(text) : [];
+          
+          if (!afterParam && rawData.length < limit) {
+             setHasMoreMessages(false);
+          }
+          
+          if (rawData.length > 0 && id) {
+            const decryptedBatch = await Promise.all(rawData.map((msg: Message) => decryptMessageIfNeeded(msg, userRef.current?.id, groupsRef.current)));
+            fetchPinnedMessages(id);
+            
+            setMessages(prev => {
+              const currentId = activeContactIdRef.current || activeGroupIdRef.current;
+              if (currentId !== id) return prev;
+              
+              const allMap = new Map<string, Message>();
+              prev.forEach(m => allMap.set(m.id, m));
+              decryptedBatch.forEach(m => allMap.set(m.id, m));
+              
+              const merged = Array.from(allMap.values()).sort((a, b) => {
+                const timeA = new Date(a.created_at.includes('T') ? a.created_at : a.created_at.replace(' ', 'T') + 'Z').getTime();
+                const timeB = new Date(b.created_at.includes('T') ? b.created_at : b.created_at.replace(' ', 'T') + 'Z').getTime();
+                return timeA - timeB;
+              });
+              setCachedMessages(id, merged);
+              return merged;
+            });
+          } else if (cached && cached.length > 0 && id) {
+            // No new messages, cache is still the best
+          }
+          
+          setIsLoadingMore(false);
+          
+          if (!isGroup && activeContact) {
+            if (socket) {
+              socket.emit('contact:read', { contactId: activeContact.id });
+            }
+            setContacts(prev => prev.map(c => 
+              c.id === activeContact.id ? { ...c, unread_count: 0 } : c
+            ));
+          } else if (isGroup && activeGroup) {
+            if (socket) {
+               socket.emit('group:read', { groupId: activeGroup.id });
+            }
+            setGroups(prev => prev.map(g => 
+              g.id === activeGroup.id ? { ...g, unread_count: 0 } : g
+            ));
+          }
+        } else {
+           setIsLoadingMore(false);
         }
-        
-        setContacts(prev => prev.map(c => 
-          c.id === activeContact.id ? { ...c, unread_count: 0 } : c
-        ));
-      } else if (isGroup && activeGroup) {
-        setGroups(prev => prev.map(g => 
-          g.id === activeGroup.id ? { ...g, unread_count: 0 } : g
-        ));
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
+        console.error('Failed to fetch messages:', err);
+        setIsLoadingMore(false);
       }
-    })
-    .catch(err => {
-      if (err.name === 'AbortError') return;
-      console.error('Failed to fetch messages:', err);
-      setIsLoadingMore(false);
-    });
+    };
+    
+    asyncFetch();
     
     return () => {
       controller.abort();
