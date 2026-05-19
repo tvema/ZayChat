@@ -568,6 +568,11 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
             referrerPolicy="no-referrer"
             unoptimized={fileData.isEncrypted || blobUrl?.startsWith('blob:')}
           />
+          {isViewerOpen && !loading && blobUrl && (
+            <Portal>
+              <ImageViewer src={blobUrl} alt={fileData.name} onClose={() => setIsViewerOpen(false)} />
+            </Portal>
+          )}
         </div>
       );
     }
@@ -584,6 +589,22 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
             />
           )}
           <PlayCircle size={20} className="text-white drop-shadow-md z-10" />
+          {isViewerOpen && !loading && blobUrl && (
+            <Portal>
+              <div className="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center p-4" onClick={(e) => { e.stopPropagation(); setIsViewerOpen(false); }}>
+                <button onClick={(e) => { e.stopPropagation(); setIsViewerOpen(false); }} className="absolute top-4 right-4 text-white/50 hover:text-white p-2 z-10 transition-colors">
+                  <X size={28} />
+                </button>
+                <video 
+                  src={blobUrl} 
+                  controls 
+                  autoPlay 
+                  className="max-w-full max-h-full rounded-lg shadow-2xl" 
+                  onClick={(e) => e.stopPropagation()} 
+                />
+              </div>
+            </Portal>
+          )}
         </div>
       );
     }
