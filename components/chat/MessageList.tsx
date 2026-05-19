@@ -415,9 +415,7 @@ export function MessageList({
     <div className="flex-1 relative flex flex-col min-h-0" onClick={() => setSelectedMessageId(null)}>
       {isLoadingMore && (
         <div className="absolute top-4 left-0 w-full flex justify-center z-10 pointer-events-none">
-          <div className="bg-white/80 dark:bg-neutral-800/80 p-1.5 rounded-full shadow-sm backdrop-blur-sm">
-            <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-          </div>
+          <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
       )}
       <div 
