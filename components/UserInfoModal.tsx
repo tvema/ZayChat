@@ -17,9 +17,10 @@ interface UserInfoModalProps {
   currentUser: User | null;
   messages?: Message[];
   socket?: Socket | null;
+  token?: string;
 }
 
-export const UserInfoModal = ({ isOpen, onClose, user, currentUser, messages = [], socket = null }: UserInfoModalProps) => {
+export const UserInfoModal = ({ isOpen, onClose, user, currentUser, messages = [], socket = null, token = '' }: UserInfoModalProps) => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'info' | 'media' | 'docs' | 'audio' | 'links'>('info');
 
@@ -31,7 +32,7 @@ export const UserInfoModal = ({ isOpen, onClose, user, currentUser, messages = [
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-white dark:bg-neutral-900 rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl relative max-h-[90vh] flex flex-col"
+            className="bg-white dark:bg-neutral-900 rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl relative h-[90vh] flex flex-col"
           >
             <button 
               onClick={onClose}
@@ -109,9 +110,9 @@ export const UserInfoModal = ({ isOpen, onClose, user, currentUser, messages = [
               ))}
             </div>
             
-            <div className="flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-neutral-200 dark:scrollbar-thumb-neutral-800">
+            <div className="flex-1 overflow-hidden flex flex-col">
               {activeTab === 'info' ? (
-                <div className="w-full space-y-3 px-2">
+                <div className="w-full space-y-3 px-6 py-4 overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-200 dark:scrollbar-thumb-neutral-800">
                   {user.email && (
                     <div className="flex items-center gap-3 p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-xl text-left">
                       <div className="w-10 h-10 rounded-full bg-white dark:bg-neutral-800 flex items-center justify-center text-neutral-500 dark:text-neutral-400 shadow-sm shrink-0">
@@ -137,7 +138,7 @@ export const UserInfoModal = ({ isOpen, onClose, user, currentUser, messages = [
                   )}
                 </div>
               ) : (
-                <SharedMediaRenderer messages={messages} activeTab={activeTab} socket={socket} activeContact={user} />
+                <SharedMediaRenderer messages={messages} activeTab={activeTab} socket={socket} activeContact={user} token={token} />
               )}
             </div>
           </motion.div>

@@ -185,6 +185,7 @@ export function ChatModals({
         currentUser={user}
         messages={messages}
         socket={socket}
+        token={token || ''}
       />
 
       <ProfileModal

@@ -1314,6 +1314,64 @@ export function setupRoutes(server: express.Express, io: any, connectedUsers: Ma
     }
   });
 
+  server.get('/api/messages/:contactId/media', authenticateToken, (req: any, res) => {
+    try {
+      const { contactId } = req.params;
+      const isGroup = req.query.isGroup === 'true';
+      const limit = parseInt(req.query.limit as string) || 50;
+      const before = req.query.before as string;
+      
+      let messages;
+      if (isGroup) {
+        let query = `
+          SELECT m.*
+          FROM messages m
+          WHERE m.group_id = ? 
+          AND (m.content LIKE '%"type":"file"%' OR m.content LIKE '%"type":"link"%' OR m.content LIKE '%http%')
+        `;
+        const params: any[] = [contactId];
+        
+        if (before) {
+          query += ` AND m.created_at < ?`;
+          params.push(before);
+        }
+        
+        query += ` ORDER BY m.created_at DESC LIMIT ?`;
+        params.push(limit);
+        
+        messages = db.prepare(query).all(...params);
+      } else {
+        let query = `
+          SELECT m.*
+          FROM messages m
+          WHERE ((m.sender_id = ? AND m.receiver_id = ?)
+             OR (m.sender_id = ? AND m.receiver_id = ?))
+          AND (m.content LIKE '%"type":"file"%' OR m.content LIKE '%"type":"link"%' OR m.content LIKE '%http%')
+        `;
+        const params: any[] = [req.user.userId, contactId, contactId, req.user.userId];
+        
+        if (before) {
+          query += ` AND m.created_at < ?`;
+          params.push(before);
+        }
+        
+        query += ` ORDER BY m.created_at DESC LIMIT ?`;
+        params.push(limit);
+        
+        messages = db.prepare(query).all(...params);
+      }
+      
+      const parsedMessages = messages.map((m: any) => ({
+        ...m,
+        encryption_data: m.encryption_data ? JSON.parse(m.encryption_data) : null
+      }));
+      
+      res.json(parsedMessages);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   // Reminders
   server.get('/api/reminders', authenticateToken, (req: any, res) => {
     try {

@@ -183,7 +183,7 @@ export const GroupInfoModal = ({ isOpen, onClose, group, token, currentUser, mes
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-white dark:bg-neutral-900 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl relative flex flex-col max-h-[80vh]"
+            className="bg-white dark:bg-neutral-900 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl relative flex flex-col h-[90vh]"
           >
             <button 
               onClick={onClose}
@@ -250,9 +250,9 @@ export const GroupInfoModal = ({ isOpen, onClose, group, token, currentUser, mes
               ))}
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-neutral-200 dark:scrollbar-thumb-neutral-800">
+            <div className="flex-1 overflow-hidden flex flex-col">
               {activeTab === 'info' ? (
-                <>
+                <div className="w-full space-y-6 px-6 py-4 overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-200 dark:scrollbar-thumb-neutral-800">
                   <div className="flex items-center justify-between mb-4 sticky top-0 bg-white dark:bg-neutral-900 py-2 z-10 px-2">
                     <h4 className="text-sm font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">{t.modals.groupMembers} ({members.length})</h4>
                   </div>
@@ -371,9 +371,9 @@ export const GroupInfoModal = ({ isOpen, onClose, group, token, currentUser, mes
                       )}
                     </div>
                   )}
-                </>
+                </div>
               ) : (
-                <SharedMediaRenderer messages={messages} activeTab={activeTab} socket={socket} activeGroup={group} />
+                <SharedMediaRenderer messages={messages} activeTab={activeTab} socket={socket} activeGroup={group} token={token} />
               )}
             </div>
           </motion.div>
