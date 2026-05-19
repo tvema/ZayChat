@@ -94,7 +94,9 @@ export function FeedView({
 
   useEffect(() => {
     if (!selectedFeedUserId && user?.id) {
-      setSelectedFeedUserId(user.id);
+      if (window.innerWidth >= 768) {
+        setSelectedFeedUserId(user.id);
+      }
     }
   }, [selectedFeedUserId, user?.id, setSelectedFeedUserId]);
 
@@ -478,7 +480,7 @@ export function FeedView({
 
   return (
     <div 
-      className="flex-1 h-full bg-indigo-50/50 dark:bg-indigo-950/20 overflow-y-auto relative"
+      className={`flex-1 h-full bg-indigo-50/50 dark:bg-indigo-950/20 overflow-y-auto relative ${!selectedFeedUserId ? 'hidden md:block' : 'block'}`}
       style={{ backgroundImage: `url("${mounted && resolvedTheme === 'dark' ? '/bunny_wallpaper_dark.jpg' : '/bunny_wallpaper_light.jpg'}")`, backgroundSize: '400px', backgroundRepeat: 'repeat' }}
     >
       <AnimatePresence>

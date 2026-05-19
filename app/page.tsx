@@ -375,7 +375,13 @@ export default function ChatApp() {
           token={token || ''} 
           socket={socket} 
           setHasUnreadFeed={chat.setHasUnreadFeed} 
-          onBack={() => chat.setAppView('messages')}
+          onBack={() => {
+            if (chat.selectedFeedUserId) {
+              chat.setSelectedFeedUserId(null);
+            } else {
+              chat.setAppView('messages');
+            }
+          }}
           setShowForwardModal={chat.setShowForwardModal}
           setForwardingMessage={chat.setForwardingMessage}
           posts={chat.feedPosts}

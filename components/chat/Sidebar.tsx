@@ -244,7 +244,7 @@ export function Sidebar({
   };
 
   return (
-    <aside className={`w-full md:w-80 min-w-0 min-h-0 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 flex flex-col shrink-0 z-20 ${(activeContact || activeGroup || appView === 'feed') ? 'hidden md:flex' : 'flex'}`}>
+    <aside className={`w-full md:w-80 min-w-0 min-h-0 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 flex flex-col shrink-0 z-20 ${((appView === 'messages' && (activeContact || activeGroup)) || (appView === 'feed' && selectedFeedUserId)) ? 'hidden md:flex' : 'flex'}`}>
       {/* User Header */}
       <div className="border-b border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 sticky top-0 z-10">
         {/* Row 1: Avatar and Name */}
