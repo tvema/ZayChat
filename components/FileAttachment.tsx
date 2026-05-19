@@ -13,7 +13,7 @@ import { useLanguage } from '@/components/LanguageProvider';
 import { decryptFile, decryptAESKeyWithRSA, importKey, base64ToArrayBuffer } from '@/lib/crypto';
 import { keyRing } from '@/lib/keyRing';
 
-export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false, encryptionData, activeGroup, messageId }: { fileData: any, senderId: string, socket: Socket | null, isThumbnail?: boolean, encryptionData?: any, activeGroup?: any, messageId?: string }) => {
+export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false, thumbnailClassName, encryptionData, activeGroup, messageId }: { fileData: any, senderId: string, socket: Socket | null, isThumbnail?: boolean, thumbnailClassName?: string, encryptionData?: any, activeGroup?: any, messageId?: string }) => {
   const { t } = useLanguage();
   const [blobUrl, setBlobUrl] = useState<string | null>(fileData.url || null);
   const blobUrlRef = useRef<string | null>(fileData.url || null);
@@ -527,7 +527,7 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
     if (loading) {
       if ((fileData.mime?.startsWith('image/') || fileData.mime?.startsWith('video/')) && fileData.thumbnail) {
         return (
-          <div className="relative w-12 h-12 shrink-0 rounded-lg overflow-hidden border border-neutral-200">
+          <div className={`relative shrink-0 rounded-lg overflow-hidden border border-neutral-200 ${thumbnailClassName || 'w-12 h-12'}`}>
             <Image 
               src={fileData.thumbnail} 
               alt="loading" 
@@ -542,14 +542,14 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
         );
       }
       return (
-        <div className="w-12 h-12 rounded-lg bg-neutral-100 flex items-center justify-center border border-neutral-200 shrink-0">
+        <div className={`rounded-lg bg-neutral-100 flex items-center justify-center border border-neutral-200 shrink-0 ${thumbnailClassName || 'w-12 h-12'}`}>
           {isDecrypting ? <Lock size={20} className="text-indigo-400 animate-pulse" /> : <Download size={20} className={hasError ? 'text-red-400' : 'text-neutral-400 animate-pulse'} />}
         </div>
       );
     }
     if (fileData.mime.startsWith('image/')) {
       return (
-        <div className="relative w-12 h-12 shrink-0">
+        <div className={`relative shrink-0 ${thumbnailClassName || 'w-12 h-12'}`}>
           <Image 
             src={blobUrl!} 
             alt={fileData.name} 
@@ -563,7 +563,7 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
     }
     if (fileData.mime.startsWith('video/')) {
       return (
-        <div className="relative w-12 h-12 shrink-0 rounded-lg overflow-hidden border border-neutral-200 bg-neutral-100 flex items-center justify-center">
+        <div className={`relative shrink-0 rounded-lg overflow-hidden border border-neutral-200 bg-neutral-100 flex items-center justify-center ${thumbnailClassName || 'w-12 h-12'}`}>
           {fileData.thumbnail && (
             <Image 
               src={fileData.thumbnail} 
@@ -579,13 +579,13 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
     }
     if (fileData.mime.startsWith('audio/')) {
       return (
-        <div className="w-12 h-12 rounded-lg bg-indigo-50 flex items-center justify-center border border-indigo-100 shrink-0">
+        <div className={`rounded-lg bg-indigo-50 flex items-center justify-center border border-indigo-100 shrink-0 ${thumbnailClassName || 'w-12 h-12'}`}>
           <PlayCircle size={20} className="text-indigo-500" />
         </div>
       );
     }
     return (
-      <div className="w-12 h-12 rounded-lg bg-neutral-100 flex items-center justify-center border border-neutral-200 shrink-0">
+      <div className={`rounded-lg bg-neutral-100 flex items-center justify-center border border-neutral-200 shrink-0 ${thumbnailClassName || 'w-12 h-12'}`}>
         <FileIcon size={20} className="text-neutral-500" />
       </div>
     );

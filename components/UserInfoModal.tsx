@@ -8,15 +8,18 @@ import { formatLastSeen } from '@/lib/chatUtils';
 import { SharedMediaRenderer } from '@/components/SharedMediaRenderer';
 import { useState } from 'react';
 
+import type { Socket } from 'socket.io-client';
+
 interface UserInfoModalProps {
   isOpen: boolean;
   onClose: () => void;
   user: User | null;
   currentUser: User | null;
   messages?: Message[];
+  socket?: Socket | null;
 }
 
-export const UserInfoModal = ({ isOpen, onClose, user, currentUser, messages = [] }: UserInfoModalProps) => {
+export const UserInfoModal = ({ isOpen, onClose, user, currentUser, messages = [], socket = null }: UserInfoModalProps) => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'info' | 'media' | 'docs' | 'audio' | 'links'>('info');
 
@@ -134,7 +137,7 @@ export const UserInfoModal = ({ isOpen, onClose, user, currentUser, messages = [
                   )}
                 </div>
               ) : (
-                <SharedMediaRenderer messages={messages} activeTab={activeTab} />
+                <SharedMediaRenderer messages={messages} activeTab={activeTab} socket={socket} activeContact={user} />
               )}
             </div>
           </motion.div>

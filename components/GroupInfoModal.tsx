@@ -15,6 +15,8 @@ interface GroupMember extends User {
   public_key?: string;
 }
 
+import type { Socket } from 'socket.io-client';
+
 interface GroupInfoModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -24,9 +26,10 @@ interface GroupInfoModalProps {
   onGroupDeleted?: (groupId: string) => void;
   onAvatarClick?: (type: 'user' | 'group', id?: string) => void;
   messages?: Message[];
+  socket?: Socket | null;
 }
 
-export const GroupInfoModal = ({ isOpen, onClose, group, token, currentUser, messages = [], onGroupDeleted, onAvatarClick }: GroupInfoModalProps) => {
+export const GroupInfoModal = ({ isOpen, onClose, group, token, currentUser, messages = [], onGroupDeleted, onAvatarClick, socket = null }: GroupInfoModalProps) => {
   const { t } = useLanguage();
   const { showAlert, showConfirm } = useGlobalModal();
   const [members, setMembers] = useState<GroupMember[]>([]);
@@ -370,7 +373,7 @@ export const GroupInfoModal = ({ isOpen, onClose, group, token, currentUser, mes
                   )}
                 </>
               ) : (
-                <SharedMediaRenderer messages={messages} activeTab={activeTab} />
+                <SharedMediaRenderer messages={messages} activeTab={activeTab} socket={socket} activeGroup={group} />
               )}
             </div>
           </motion.div>

@@ -98,6 +98,13 @@ export function MessageInput({
   const [isSubmittingFeed, setIsSubmittingFeed] = useState(false);
 
   useEffect(() => {
+    setInput('');
+    setHtmlContent('');
+    setPendingFile(null);
+    setPreviewUrl(null);
+  }, [activeContact?.id, activeGroup?.id]);
+
+  useEffect(() => {
     const handleProgress = (e: any) => {
       setUploadProgress(e.detail);
       if (e.detail.progress >= 100) {
@@ -480,6 +487,11 @@ export function MessageInput({
     }
   };
 
+  const onSubmitRef = useRef<(e?: React.FormEvent) => void>(() => {});
+  useEffect(() => {
+    onSubmitRef.current = onSubmit;
+  }, [onSubmit]);
+
   const handleKeyDown = (e: any) => {
     if (e.key === 'Enter') {
       const isMobile = window.innerWidth <= 768;
@@ -488,7 +500,7 @@ export function MessageInput({
       }
       if (!e.shiftKey) {
         e.preventDefault();
-        onSubmit();
+        onSubmitRef.current();
       }
     }
   };
@@ -694,7 +706,7 @@ export function MessageInput({
         </div>
       )}
 
-      <form onSubmit={onSubmit} className="flex items-end gap-2 max-w-4xl mx-auto relative z-50">
+      <form onSubmit={(e) => { e.preventDefault(); onSubmitRef.current(e); }} className="flex items-end gap-2 max-w-4xl mx-auto relative z-50">
         <div className="flex-1 min-w-0 bg-neutral-100 dark:bg-neutral-800 rounded-2xl border border-transparent focus-within:border-indigo-300 dark:focus-within:border-indigo-500 focus-within:bg-white dark:focus-within:bg-neutral-900 focus-within:ring-4 focus-within:ring-indigo-50 dark:focus-within:ring-indigo-900/20 transition-all flex items-end px-2 py-1">
           {!isRecording ? (
             <>

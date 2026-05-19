@@ -483,6 +483,7 @@ export default function ChatApp() {
       <ChatModals
         user={user!}
         token={token}
+        socket={socket}
         contacts={contacts}
         groups={groups}
         messages={chat.messages}

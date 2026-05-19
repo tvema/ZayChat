@@ -16,9 +16,12 @@ import { useLanguage } from '@/components/LanguageProvider';
 
 import { ContactCirclesModal } from './ContactCirclesModal';
 
+import type { Socket } from 'socket.io-client';
+
 interface ChatModalsProps {
   user: User | null;
   token: string | null;
+  socket: Socket | null;
   contacts: User[];
   groups: Group[];
   messages: Message[];
@@ -89,6 +92,7 @@ interface ChatModalsProps {
 export function ChatModals({
   user,
   token,
+  socket,
   contacts,
   groups,
   messages,
@@ -180,6 +184,7 @@ export function ChatModals({
         user={activeContact} 
         currentUser={user}
         messages={messages}
+        socket={socket}
       />
 
       <ProfileModal
@@ -244,6 +249,7 @@ export function ChatModals({
         token={token || ''}
         currentUser={user}
         messages={messages}
+        socket={socket}
         onGroupDeleted={(groupId) => {
           setGroups(prev => prev.filter(g => g.id !== groupId));
           if (activeGroup?.id === groupId) {

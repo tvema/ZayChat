@@ -1,16 +1,21 @@
 'use client';
 import React, { useMemo } from 'react';
 import Image from 'next/image';
-import { Message } from '@/types/chat';
+import { Message, User, Group } from '@/types/chat';
 import { FileIcon, LinkIcon, Headphones, Image as ImageIcon, Download } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageProvider';
+import { FileAttachment } from '@/components/FileAttachment';
+import type { Socket } from 'socket.io-client';
 
 interface SharedMediaRendererProps {
   messages: Message[];
   activeTab: 'media' | 'docs' | 'audio' | 'links';
+  socket?: Socket | null;
+  activeGroup?: Group | null;
+  activeContact?: User | null;
 }
 
-export function SharedMediaRenderer({ messages, activeTab }: SharedMediaRendererProps) {
+export function SharedMediaRenderer({ messages, activeTab, socket = null, activeGroup, activeContact }: SharedMediaRendererProps) {
   const { t } = useLanguage();
 
   const items = useMemo(() => {
@@ -76,19 +81,25 @@ export function SharedMediaRenderer({ messages, activeTab }: SharedMediaRenderer
   if (activeTab === 'media') {
     return (
       <div className="grid grid-cols-3 gap-1">
-        {items.map((item, idx) => (
-          <a key={idx} href={item.url} target="_blank" rel="noopener noreferrer" className="relative aspect-square cursor-pointer group bg-neutral-100 dark:bg-neutral-800 overflow-hidden block">
-            {item.isImage ? (
-              <Image src={item.url} alt="media" fill className="object-cover group-hover:scale-105 transition-transform" />
-            ) : (
-              <video src={item.url} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-            )}
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-            {item.isVideo && (
-              <span className="absolute bottom-1 right-1 bg-black/50 text-white text-[10px] px-1 rounded">Видео</span>
-            )}
-          </a>
-        ))}
+        {items.map((item, idx) => {
+          const isDecryptedUrl = item.url && !item.isEncrypted;
+          return (
+            <a key={idx} href={isDecryptedUrl ? item.url : '#'} onClick={(e) => { if (!isDecryptedUrl) e.preventDefault(); }} target={isDecryptedUrl ? "_blank" : undefined} rel="noopener noreferrer" className="relative aspect-square cursor-pointer group bg-neutral-100 dark:bg-neutral-800 overflow-hidden block">
+              <FileAttachment 
+                fileData={item} 
+                senderId={item.senderId || ''} 
+                socket={socket} 
+                activeGroup={activeGroup} 
+                isThumbnail={true} 
+                thumbnailClassName="w-full h-full [&>img]:object-cover [&>video]:object-cover [&>img]:group-hover:scale-105 [&>video]:group-hover:scale-105" 
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors pointer-events-none" />
+              {item.isVideo && (
+                <span className="absolute bottom-1 right-1 bg-black/50 text-white text-[10px] px-1 rounded pointer-events-none">Видео</span>
+              )}
+            </a>
+          );
+        })}
       </div>
     );
   }
@@ -97,16 +108,13 @@ export function SharedMediaRenderer({ messages, activeTab }: SharedMediaRenderer
     return (
       <div className="flex flex-col gap-2 p-2">
         {items.map((item, idx) => (
-          <a key={idx} href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 bg-neutral-50 dark:bg-neutral-800/50 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition-colors">
-            <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg flex items-center justify-center shrink-0">
-              {activeTab === 'audio' ? <Headphones size={20} /> : <FileIcon size={20} />}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">{item.name}</p>
-              <p className="text-xs text-neutral-500 truncate">{item.size ? (item.size / 1024 / 1024).toFixed(2) + ' MB' : ''}</p>
-            </div>
-            <Download size={18} className="text-neutral-400 shrink-0" />
-          </a>
+          <FileAttachment 
+            key={idx} 
+            fileData={item} 
+            senderId={item.senderId || ''} 
+            socket={socket} 
+            activeGroup={activeGroup} 
+          />
         ))}
       </div>
     );
