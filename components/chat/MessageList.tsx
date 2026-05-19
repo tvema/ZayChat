@@ -364,27 +364,10 @@ export function MessageList({
         if (container) {
           isRestoring.current = true;
           const scrollHeightDiff = container.scrollHeight - lastScrollTop.current;
-          let newScrollTop = container.scrollTop + scrollHeightDiff;
+          container.scrollTop = container.scrollTop + scrollHeightDiff;
           
-          let saved = null;
-          if (chatId && scrollPositionsRef.current) {
-            saved = scrollPositionsRef.current[chatId];
-            if (saved && saved.distanceFromBottom !== undefined && !saved.wasAtBottom) {
-               newScrollTop = Math.max(0, container.scrollHeight - saved.distanceFromBottom);
-            }
-          }
-          
-          container.scrollTop = newScrollTop;
-          
-          if (saved) {
-             saved.scrollTop = newScrollTop;
-          }
-          
-          if (newScrollTop < 100 && hasMoreMessages && !isLoadingMore && loadMoreMessages) {
-            // Keep loading until we have enough height to fulfill the distanceFromBottom
-            setTimeout(() => {
-               loadMoreMessages();
-            }, 50);
+          if (chatId && scrollPositionsRef.current && scrollPositionsRef.current[chatId]) {
+             scrollPositionsRef.current[chatId].scrollTop = container.scrollTop;
           }
           
           setTimeout(() => {

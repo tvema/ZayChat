@@ -768,7 +768,13 @@ export function useChat() {
         }
         if (data.length > 0) {
           const decryptedMessages = await Promise.all(data.map((msg: Message) => decryptMessageIfNeeded(msg, userRef.current?.id, groupsRef.current)));
-          setMessages(prev => [...decryptedMessages, ...prev]);
+          setMessages(prev => {
+            const combined = [...decryptedMessages, ...prev];
+            if (id) {
+              setCachedMessages(id, combined);
+            }
+            return combined;
+          });
         }
       }
     } catch (err) {
