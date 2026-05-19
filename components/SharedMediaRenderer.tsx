@@ -136,26 +136,28 @@ export function SharedMediaRenderer({ messages, activeTab, socket = null, active
   if (activeTab === 'media') {
     return (
       <div 
-        className="grid grid-cols-3 gap-1 overflow-y-auto h-full scrollbar-thin scrollbar-thumb-neutral-200 dark:scrollbar-thumb-neutral-800"
+        className="grid grid-cols-3 gap-[2px] overflow-y-auto h-full scrollbar-thin scrollbar-thumb-neutral-200 dark:scrollbar-thumb-neutral-800"
         onScroll={handleScroll}
       >
         {items.map((item, idx) => {
-          const isDecryptedUrl = item.url && !item.isEncrypted;
           return (
-            <a key={idx} href={isDecryptedUrl ? item.url : '#'} onClick={(e) => { if (!isDecryptedUrl) e.preventDefault(); }} target={isDecryptedUrl ? "_blank" : undefined} rel="noopener noreferrer" className="relative aspect-square cursor-pointer group bg-neutral-100 dark:bg-neutral-800 overflow-hidden block">
+            <div 
+              key={idx}
+              className="relative aspect-square cursor-pointer group bg-neutral-100 dark:bg-neutral-800 overflow-hidden block"
+            >
               <FileAttachment 
                 fileData={item} 
                 senderId={item.senderId || ''} 
                 socket={socket} 
                 activeGroup={activeGroup} 
                 isThumbnail={true} 
-                thumbnailClassName="w-full h-full [&>img]:object-cover [&>video]:object-cover [&>img]:group-hover:scale-105 [&>video]:group-hover:scale-105" 
+                thumbnailClassName="absolute inset-0 !w-full !h-full !rounded-none !border-none overflow-hidden [&>img]:object-cover [&>video]:object-cover [&>img]:!rounded-none [&>img]:group-hover:scale-105 [&>video]:group-hover:scale-105 transition-transform duration-300" 
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors pointer-events-none" />
               {item.isVideo && (
-                <span className="absolute bottom-1 right-1 bg-black/50 text-white text-[10px] px-1 rounded pointer-events-none">Видео</span>
+                <span className="absolute bottom-1 right-1 bg-black/50 text-white text-[10px] px-1 rounded pointer-events-none z-10">Видео</span>
               )}
-            </a>
+            </div>
           );
         })}
         {isLoading && (

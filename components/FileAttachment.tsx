@@ -3,7 +3,7 @@ import { safeLocalStorage } from '@/lib/safeStorage';
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { Download, FileIcon, PlayCircle, Lock, Type } from 'lucide-react';
+import { Download, FileIcon, PlayCircle, Lock, Type, X } from 'lucide-react';
 import type { Socket } from 'socket.io-client';
 import { getFile } from '@/lib/db';
 import { ImageViewer } from './ImageViewer';
@@ -524,10 +524,20 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
   const hasDimensions = !!containerStyle;
 
   if (isThumbnail) {
+    const handleThumbnailClick = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (loading && !shouldDownload) {
+        setShouldDownload(true);
+      } else if (!loading && (fileData.mime?.startsWith('image/') || fileData.mime?.startsWith('video/'))) {
+        setIsViewerOpen(true);
+      }
+    };
+
     if (loading) {
       if ((fileData.mime?.startsWith('image/') || fileData.mime?.startsWith('video/')) && fileData.thumbnail) {
         return (
-          <div className={`relative shrink-0 rounded-lg overflow-hidden border border-neutral-200 ${thumbnailClassName || 'w-12 h-12'}`}>
+          <div onClick={handleThumbnailClick} className={`relative shrink-0 rounded-lg overflow-hidden border border-neutral-200 cursor-pointer ${thumbnailClassName || 'w-12 h-12'}`}>
             <Image 
               src={fileData.thumbnail} 
               alt="loading" 
@@ -542,14 +552,14 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
         );
       }
       return (
-        <div className={`rounded-lg bg-neutral-100 flex items-center justify-center border border-neutral-200 shrink-0 ${thumbnailClassName || 'w-12 h-12'}`}>
+        <div onClick={handleThumbnailClick} className={`rounded-lg bg-neutral-100 flex items-center justify-center border border-neutral-200 shrink-0 cursor-pointer ${thumbnailClassName || 'w-12 h-12'}`}>
           {isDecrypting ? <Lock size={20} className="text-indigo-400 animate-pulse" /> : <Download size={20} className={hasError ? 'text-red-400' : 'text-neutral-400 animate-pulse'} />}
         </div>
       );
     }
     if (fileData.mime.startsWith('image/')) {
       return (
-        <div className={`relative shrink-0 ${thumbnailClassName || 'w-12 h-12'}`}>
+        <div onClick={handleThumbnailClick} className={`relative shrink-0 cursor-pointer ${thumbnailClassName || 'w-12 h-12'}`}>
           <Image 
             src={blobUrl!} 
             alt={fileData.name} 
@@ -563,7 +573,7 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
     }
     if (fileData.mime.startsWith('video/')) {
       return (
-        <div className={`relative shrink-0 rounded-lg overflow-hidden border border-neutral-200 bg-neutral-100 flex items-center justify-center ${thumbnailClassName || 'w-12 h-12'}`}>
+        <div onClick={handleThumbnailClick} className={`relative shrink-0 rounded-lg overflow-hidden border border-neutral-200 bg-neutral-100 flex items-center justify-center cursor-pointer ${thumbnailClassName || 'w-12 h-12'}`}>
           {fileData.thumbnail && (
             <Image 
               src={fileData.thumbnail} 
@@ -698,6 +708,26 @@ export const FileAttachment = ({ fileData, senderId, socket, isThumbnail = false
             <AnimatePresence>
               {isViewerOpen && (
                 <ImageViewer src={blobUrl} alt={fileData.name} onClose={() => setIsViewerOpen(false)} />
+              )}
+            </AnimatePresence>
+          </Portal>
+        )}
+        {isVideo && !loading && blobUrl && (
+          <Portal>
+            <AnimatePresence>
+              {isViewerOpen && (
+                <div className="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center p-4" onClick={() => setIsViewerOpen(false)}>
+                  <button onClick={() => setIsViewerOpen(false)} className="absolute top-4 right-4 text-white/50 hover:text-white p-2 z-10 transition-colors">
+                    <X size={28} />
+                  </button>
+                  <video 
+                    src={blobUrl} 
+                    controls 
+                    autoPlay 
+                    className="max-w-full max-h-full rounded-lg shadow-2xl" 
+                    onClick={(e) => e.stopPropagation()} 
+                  />
+                </div>
               )}
             </AnimatePresence>
           </Portal>
