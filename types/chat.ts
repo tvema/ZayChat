@@ -56,6 +56,7 @@ export type Message = {
   sender_last_name?: string;
   sender_avatar_url?: string | null;
   encryption_data?: any; // E2EE data
+  encrypted_content?: string;
 };
 
 export type Reminder = {

@@ -44,9 +44,21 @@ export async function setCachedMessages(chatId: string, messages: Message[]) {
   try {
     const db = await getDb();
     if (!db) return;
+    
+    // Cache the encrypted versions so plaintext is not kept in IndexedDB
+    const encryptedMessagesToCache = messages.map(msg => {
+      if (msg.encrypted_content) {
+        return {
+          ...msg,
+          content: msg.encrypted_content
+        };
+      }
+      return msg;
+    });
+
     await db.put('chat_cache', {
       chatId,
-      messages,
+      messages: encryptedMessagesToCache,
       updatedAt: Date.now()
     });
   } catch (error) {

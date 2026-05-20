@@ -41,6 +41,7 @@ export const decryptMessageIfNeeded = async (msg: Message, currentUserId?: strin
 
     return {
       ...msg,
+      encrypted_content: msg.encrypted_content || msg.content,
       content: decryptedText,
       encryption_data: encData
     };

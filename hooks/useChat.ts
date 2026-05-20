@@ -627,8 +627,9 @@ export function useChat() {
       let afterParam = '';
       
       if (id) {
-        cached = await getCachedMessages(id);
-        if (cached && cached.length > 0) {
+        const rawCached = await getCachedMessages(id);
+        if (rawCached && rawCached.length > 0) {
+          cached = await Promise.all(rawCached.map((msg: Message) => decryptMessageIfNeeded(msg, userRef.current?.id, groupsRef.current)));
           // Verify we are still looking at the same chat to avoid race conditions
           const currentId = activeContactIdRef.current || activeGroupIdRef.current;
           if (currentId === id) {
@@ -847,9 +848,10 @@ export function useChat() {
 
     for (const chat of allChatIds) {
       if (backgroundSearchRef.current.q !== q || !backgroundSearchRef.current.active) return;
-      const cached = await getCachedMessages(chat.id);
-      if (cached && backgroundSearchRef.current.q === q) {
-        cached.forEach(msg => {
+      const rawCached = await getCachedMessages(chat.id);
+      if (rawCached && backgroundSearchRef.current.q === q) {
+        const cached = await Promise.all(rawCached.map((msg: Message) => decryptMessageIfNeeded(msg, userRef.current?.id, groupsRef.current)));
+        cached.forEach((msg: Message) => {
           if (msg.content && msg.content.toLowerCase().includes(q.toLowerCase())) {
             // Avoid duplicates
             if (!results.find(r => r.message.id === msg.id)) {
